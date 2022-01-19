@@ -14,6 +14,7 @@ import javax.validation.constraints.Min;
 import java.util.List;
 
 @RestController
+//http://localhost:8080/users/?options=&
 @RequestMapping("users")
 public class UserController extends ServiceController {
 

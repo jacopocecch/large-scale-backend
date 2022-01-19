@@ -1,6 +1,5 @@
 package com.unipi.data.mining.backend.dtos;
 
-import com.unipi.data.mining.backend.data.ClusterValues;
 import com.unipi.data.mining.backend.data.Login;
 import com.unipi.data.mining.backend.entities.mongodb.MongoUser;
 import com.unipi.data.mining.backend.entities.mongodb.Survey;

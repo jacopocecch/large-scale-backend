@@ -1,6 +1,5 @@
 package com.unipi.data.mining.backend.service;
 
-import com.unipi.data.mining.backend.data.ClusterValues;
 import com.unipi.data.mining.backend.entities.mongodb.Survey;
 import org.passay.CharacterData;
 import org.passay.CharacterRule;
