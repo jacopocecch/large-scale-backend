@@ -10,14 +10,4 @@ import java.util.Optional;
 @Service
 public class SongService extends EntityService{
 
-    public void populateNeo4jDatabase() {
-
-        List<MongoSong> mongoSongs = mongoSongRepository.findAllToPopulateNeo4j();
-
-        for (MongoSong mongoSong: mongoSongs) {
-
-            neo4jSongDao.populateNeo4j(mongoSong);
-        }
-    }
-
 }

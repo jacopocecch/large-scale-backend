@@ -11,13 +11,4 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("songs")
 public class SongController extends ServiceController{
 
-    @Transactional
-    @PostMapping("populate_neo4j")
-    ResponseEntity<Object> populateNeo4jDatabase() {
-
-        songService.populateNeo4jDatabase();
-        return new ResponseEntity<>(
-                HttpStatus.OK
-        );
-    }
 }

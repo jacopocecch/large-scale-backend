@@ -486,42 +486,16 @@ public class Neo4jUserDao extends Neo4jDao{
             throw e;
         }
     }
-
-    public void populateNeo4j(MongoUser mongoUser) {
-
-        try (Session session = driver.session()){
-
-            String objectId = mongoUser.getId().toString();
-
-            List<Neo4jUser> users = session.readTransaction(transaction -> {
-                String query = """
-                MATCH (u:User)
-                WHERE u.mongoId = $mongo_id
-                RETURN u""";
-
-                Map<String, Object> params = Collections.singletonMap("mongo_id", mongoUser.getId().toString());
-                return getNeo4jUsers(transaction, query, params);
-            });
-            Optional<Neo4jUser> optionalNeo4jUser = users.stream().findFirst();
-
-            if (optionalNeo4jUser.isPresent()) return;
-
-            session.writeTransaction(transaction -> {
-                String query = """
-                    CREATE (u: User {mongoId: $mongo_id, firstName: $first_name, lastName: $last_name, country: $country, picture: $image})""";
-
-                Map<String, Object> params = setCreateUpdateParameters(new Neo4jUser(objectId, mongoUser.getFirstName(), mongoUser.getLastName(), mongoUser.getCountry(), mongoUser.getImage()));
-
-                runTransaction(transaction, query, params);
-                return null;
-            });
-        }
-    }
     /*
 :auto USING PERIODIC COMMIT 500
 LOAD CSV WITH HEADERS FROM 'file:///user.csv' AS row
 WITH row._id as mongoId, row.country as country, row.first_name as firstName, row.last_name as lastName, row.picture as picture
 CREATE (u:User {mongoId: mongoId, country : country, firstName : firstName, lastName : lastName, picture : picture})
 
+
+:auto USING PERIODIC COMMIT 500
+LOAD CSV WITH HEADERS FROM 'file:///song.csv' AS row
+WITH row.mongoId as mongoId, row.name as name, row.album as album, row.artists as artists
+CREATE (s:Song {mongoId: mongoId, name : name, album : album, artists : artists})
      */
 }

@@ -166,17 +166,6 @@ public class UserController extends ServiceController {
     }
 
 
-    @Transactional
-    @PostMapping("populate_neo4j")
-    ResponseEntity<Object> populateNeo4jDatabase() {
-
-        userService.populateNeo4jDatabase();
-        return new ResponseEntity<>(
-                HttpStatus.OK
-        );
-    }
-
-
     @GetMapping("cluster_values/{id}")
     ResponseEntity<SurveyDto> getUserClusterValues(@PathVariable("id") String id) {
 

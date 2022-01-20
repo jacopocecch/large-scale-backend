@@ -191,16 +191,6 @@ public class UserService extends EntityService {
         return optionalNeo4jUser.get();
     }
 
-
-    public void populateNeo4jDatabase() {
-
-        List<MongoUser> mongoUsers = mongoUserRepository.findAllWithNeo4jInfo();
-        for (MongoUser mongoUser:mongoUsers) {
-
-            neo4jUserDao.populateNeo4j(mongoUser);
-        }
-    }
-
     private void updateMongoUserInfo(MongoUser dbData, MongoUser newData) {
 
         if (!Objects.equals(dbData.getFirstName(), newData.getFirstName())) dbData.setFirstName(newData.getFirstName());
