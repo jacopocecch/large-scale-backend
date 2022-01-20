@@ -2,8 +2,10 @@ package com.unipi.data.mining.backend.service.clustering;
 
 import com.unipi.data.mining.backend.entities.mongodb.MongoUser;
 import com.unipi.data.mining.backend.entities.mongodb.Survey;
+import com.unipi.data.mining.backend.repositories.CustomUserRepository;
 import com.unipi.data.mining.backend.repositories.MongoUserRepository;
 import com.unipi.data.mining.backend.service.Utils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import weka.clusterers.FilteredClusterer;
 import weka.clusterers.SimpleKMeans;
@@ -17,9 +19,11 @@ import java.util.stream.Collectors;
 @Service
 public class Clustering {
 
-    protected final MongoUserRepository mongoUserRepository;
+    private final MongoUserRepository mongoUserRepository;
 
-    protected final Utils utils;
+    private CustomUserRepository customUserRepository;
+
+    private final Utils utils;
 
     private final ArrayList<Attribute> attributes = new ArrayList<>();
     private Instances dataset;
@@ -27,7 +31,8 @@ public class Clustering {
     as attribute of the instance without considering it in the KMeans algorithm */
     private FilteredClusterer filteredClusterer;
 
-    public Clustering(MongoUserRepository mongoUserRepository, Utils utils) {
+    public Clustering(MongoUserRepository mongoUserRepository, CustomUserRepository customUserRepository, Utils utils) {
+        this.customUserRepository = customUserRepository;
         attributes.add(new Attribute("id",(ArrayList<String>)null));
         attributes.add(new Attribute("neurotic"));
         attributes.add(new Attribute("agreeable"));
@@ -37,6 +42,7 @@ public class Clustering {
         attributes.add(new Attribute("timeSpent"));
         this.mongoUserRepository = mongoUserRepository;
         this.utils = utils;
+        this.customUserRepository = customUserRepository;
     }
 
     public void startClustering() {
@@ -52,7 +58,7 @@ public class Clustering {
             dataset.add(inst);
         }
         buildClusterer();
-        //updateClusters(mongoUserMap);
+        updateClusters(mongoUserMap);
     }
 
     private void buildClusterer() {
@@ -86,14 +92,19 @@ public class Clustering {
                 MongoUser user = mongoUserMap.get(userId);
                 if (user.getCluster() != cluster) {
                     user.setCluster(cluster);
+                    //customUserRepository.updateCluster(user);
                     usersToBeUpdated.add(user);
+                    if (usersToBeUpdated.size() == 1000) {
+                        customUserRepository.bulkUpdateCluster(usersToBeUpdated);
+                        usersToBeUpdated.clear();
+                        System.out.println("Updating 1000 users");
+                    }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-        System.out.println("Users to be updated: " + usersToBeUpdated.size() + " / " + dataset.size());
-        mongoUserRepository.saveAll(usersToBeUpdated);
+        customUserRepository.bulkUpdateCluster(usersToBeUpdated);
         System.out.println("Users' cluster updated!");
     }
 

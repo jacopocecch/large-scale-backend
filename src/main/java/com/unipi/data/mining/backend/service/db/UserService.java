@@ -10,6 +10,8 @@ import com.unipi.data.mining.backend.service.exceptions.LoginException;
 import com.unipi.data.mining.backend.service.exceptions.RegistrationException;
 import com.unipi.data.mining.backend.service.exceptions.SimilarityException;
 import org.bson.types.ObjectId;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -333,13 +335,18 @@ public class UserService extends EntityService {
 
     public void hashPasswords() {
 
-        List<MongoUser> mongoUsers = mongoUserRepository.findAll();
-
-        for (MongoUser mongoUser: mongoUsers) {
-            String password = mongoUser.getPassword();
-            mongoUser.setPassword(passwordEncoder.encode(password));
-            customUserRepository.updatePassword(mongoUser);
-        }
+        List<MongoUser> mongoUsers;
+        int i = 0;
+        do {
+            Pageable pageable = PageRequest.of(i, 1000);
+            mongoUsers = mongoUserRepository.findAll(pageable).toList();
+            for (MongoUser mongoUser: mongoUsers) {
+                String password = mongoUser.getPassword();
+                if (password.length() == 16) continue;
+                mongoUser.setPassword(passwordEncoder.encode(password));
+            }
+            customUserRepository.bulkUpdatePassword(mongoUsers);
+        } while (!mongoUsers.isEmpty());
     }
 
     public void generatePasswords() {
@@ -390,10 +397,12 @@ public class UserService extends EntityService {
 
                     String userEmail = mongoUser.getEmail();
                     userEmail = userEmail.replace("@", i + "@");
-                    customUserRepository.updateEmail(mongoUser, userEmail);
+                    mongoUser.setEmail(userEmail);
                     i++;
                 }
             }
+
+            customUserRepository.bulkUpdateEmail(mongoUsers);
         }
     }
 
