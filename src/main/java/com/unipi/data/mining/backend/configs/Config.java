@@ -14,7 +14,7 @@ public class Config {
 
     @Bean
     public PasswordEncoder encoder() {
-        return new BCryptPasswordEncoder();
+        return new BCryptPasswordEncoder(5);
     }
 
     @Bean
@@ -29,7 +29,7 @@ public class Config {
     public WebMvcConfigurer corsConfigurer() {
         return new WebMvcConfigurer() {
             @Override
-            public void addCorsMappings(CorsRegistry registry) {
+            public void addCorsMappings(@SuppressWarnings("NullableProblems") CorsRegistry registry) {
                 registry.addMapping("/**");
             }
         };

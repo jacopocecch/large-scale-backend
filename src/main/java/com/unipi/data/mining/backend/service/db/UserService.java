@@ -1,5 +1,6 @@
 package com.unipi.data.mining.backend.service.db;
 
+import com.unipi.data.mining.backend.data.Counter;
 import com.unipi.data.mining.backend.data.Distance;
 import com.unipi.data.mining.backend.data.Login;
 import com.unipi.data.mining.backend.entities.mongodb.MongoUser;
@@ -14,6 +15,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import scala.Int;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -192,16 +194,10 @@ public class UserService extends EntityService {
 
     public void populateNeo4jDatabase() {
 
-        List<MongoUser> mongoUsers = mongoUserRepository.findAll();
+        List<MongoUser> mongoUsers = mongoUserRepository.findAllWithNeo4jInfo();
         for (MongoUser mongoUser:mongoUsers) {
 
-            String objectId = mongoUser.getId().toString();
-
-            Optional<Neo4jUser> optionalNeo4jUser = neo4jUserDao.getByMongoId(objectId);
-
-            if (optionalNeo4jUser.isPresent()) continue;
-
-            neo4jUserDao.createUser(new Neo4jUser(objectId, mongoUser.getFirstName(), mongoUser.getLastName(), mongoUser.getCountry(), mongoUser.getImage()));
+            neo4jUserDao.populateNeo4j(mongoUser);
         }
     }
 
@@ -335,33 +331,44 @@ public class UserService extends EntityService {
 
     public void hashPasswords() {
 
-        List<MongoUser> mongoUsers;
-        int i = 0;
-        do {
-            Pageable pageable = PageRequest.of(i, 1000);
-            mongoUsers = mongoUserRepository.findAll(pageable).toList();
-            for (MongoUser mongoUser: mongoUsers) {
-                String password = mongoUser.getPassword();
-                if (password.length() == 16) continue;
-                mongoUser.setPassword(passwordEncoder.encode(password));
+        List<MongoUser> mongoUsers = mongoUserRepository.findAllPasswords();
+        List<MongoUser> usersToBeUpdated = new ArrayList<>();
+
+        for (MongoUser mongoUser: mongoUsers) {
+            String password = mongoUser.getPassword();
+            mongoUser.setPassword(passwordEncoder.encode(password));
+            usersToBeUpdated.add(mongoUser);
+
+            if (usersToBeUpdated.size() == 1000) {
+                customUserRepository.bulkUpdatePassword(usersToBeUpdated);
+                usersToBeUpdated.clear();
             }
-            customUserRepository.bulkUpdatePassword(mongoUsers);
-        } while (!mongoUsers.isEmpty());
+        }
+
+        if (!usersToBeUpdated.isEmpty()) {
+            customUserRepository.bulkUpdatePassword(usersToBeUpdated);
+        }
     }
 
     public void generatePasswords() {
 
-        List<MongoUser> mongoUsers = mongoUserRepository.findAll();
+        List<MongoUser> mongoUsers = mongoUserRepository.findAllIds();
         List<MongoUser> usersToBeUpdated = new ArrayList<>();
 
         for (MongoUser mongoUser: mongoUsers) {
-            if (mongoUser.getPassword().length() == 10) continue;
             String password = utils.generatePassword();
             mongoUser.setPassword(password);
             usersToBeUpdated.add(mongoUser);
+
+            if (usersToBeUpdated.size() == 1000) {
+                customUserRepository.bulkUpdatePassword(usersToBeUpdated);
+                usersToBeUpdated.clear();
+            }
         }
 
-        mongoUserRepository.saveAll(usersToBeUpdated);
+        if (!usersToBeUpdated.isEmpty()) {
+            customUserRepository.bulkUpdatePassword(usersToBeUpdated);
+        }
     }
 
     public void changeDuplicateEmails() {
@@ -369,25 +376,32 @@ public class UserService extends EntityService {
 
         List<MongoUser> users = mongoUserRepository.findEmails();
 
-        List<String> emails = users.stream().map(MongoUser::getEmail).toList();
+        Map<String, Counter> emailMap = new HashMap<>();
 
-        Map<String, Integer> emailMap = new HashMap<>();
+        Map<String, List<MongoUser>> duplicateEmails = new HashMap<>();
 
-        List<String> duplicateEmails = new ArrayList<>();
+        for (MongoUser user: users) {
 
-        for (String email: emails) {
-
-            if (emailMap.containsKey(email)) emailMap.put(email, emailMap.get(email) + 1);
-            else emailMap.put(email, 1);
+            if (emailMap.containsKey(user.getEmail())) {
+                Counter counter = emailMap.get(user.getEmail());
+                counter.setCount(counter.getCount() + 1);
+                counter.getUsers().add(user);
+                emailMap.put(user.getEmail(), counter);
+            }
+            else {
+                emailMap.put(user.getEmail(), new Counter(1, user));
+            }
         }
 
-        for (Map.Entry<String, Integer> entry: emailMap.entrySet()) {
-            if (entry.getValue() > 1) duplicateEmails.add(entry.getKey());
+        for (Map.Entry<String, Counter> entry: emailMap.entrySet()) {
+            if (entry.getValue().getCount() > 1) duplicateEmails.put(entry.getKey(), entry.getValue().getUsers());
         }
 
-        for (String email: duplicateEmails) {
+        List<MongoUser> toBeUpdated = new ArrayList<>();
 
-            List<MongoUser> mongoUsers = mongoUserRepository.findMongoUsersByEmail(email);
+        for (Map.Entry<String, List<MongoUser>> entry: duplicateEmails.entrySet()) {
+
+            List<MongoUser> mongoUsers = entry.getValue();
 
             if (mongoUsers.size() > 1) {
 
@@ -402,8 +416,14 @@ public class UserService extends EntityService {
                 }
             }
 
-            customUserRepository.bulkUpdateEmail(mongoUsers);
+            toBeUpdated.addAll(mongoUsers);
+
+            if (toBeUpdated.size() > 950) {
+                customUserRepository.bulkUpdateEmail(toBeUpdated);
+                toBeUpdated.clear();
+            }
         }
+        customUserRepository.bulkUpdateEmail(toBeUpdated);
     }
 
     /*

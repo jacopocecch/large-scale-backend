@@ -16,13 +16,8 @@ public class SongService extends EntityService{
 
         for (MongoSong mongoSong: mongoSongs) {
 
-            String objectId = mongoSong.getId().toString();
-
-            Optional<Neo4jSong> optionalNeo4jSong = neo4jSongDao.getByMongoId(objectId);
-
-            if (optionalNeo4jSong.isPresent()) continue;
-
-            neo4jSongDao.createSong(new Neo4jSong(objectId, mongoSong.getName(), String.join(", ", mongoSong.getArtists().stream().toList()), mongoSong.getAlbum()));
+            neo4jSongDao.populateNeo4j(mongoSong);
         }
     }
+
 }

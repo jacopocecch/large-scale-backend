@@ -1,5 +1,7 @@
 package com.unipi.data.mining.backend.daos;
 
+import com.unipi.data.mining.backend.entities.mongodb.MongoSong;
+import com.unipi.data.mining.backend.entities.mongodb.MongoUser;
 import com.unipi.data.mining.backend.entities.neo4j.Neo4jSong;
 import com.unipi.data.mining.backend.entities.neo4j.Neo4jUser;
 import org.neo4j.driver.Result;
@@ -74,6 +76,38 @@ public class Neo4jSongDao extends Neo4jDao{
         } catch (Neo4jException e) {
             LOGGER.error(query + " raised an exception", e);
             throw e;
+        }
+    }
+
+    public void populateNeo4j(MongoSong mongoSong) {
+
+        try (Session session = driver.session()){
+
+
+            String objectId = mongoSong.getId().toString();
+
+            List<Neo4jSong> songs = session.readTransaction(transaction -> {
+                String query = """
+                MATCH (s:Song)
+                WHERE s.mongoId = $mongo_id
+                RETURN s""";
+
+                Map<String, Object> params = Collections.singletonMap("mongo_id", mongoSong.getId().toString());
+                return getNeo4jSongs(transaction, query, params);
+            });
+            Optional<Neo4jSong> optionalNeo4jSong = songs.stream().findFirst();
+
+            if (optionalNeo4jSong.isPresent()) return;
+
+            session.writeTransaction(transaction -> {
+                String query = """
+                    CREATE (s: Song {mongoId: $mongo_id, name: $name, artists: $artists, album: $album})""";
+
+                Map<String, Object> params = setCreateUpdateParameters(new Neo4jSong(objectId, mongoSong.getName(), String.join(", ", mongoSong.getArtists().stream().toList()), mongoSong.getAlbum()));
+
+                runTransaction(transaction, query, params);
+                return null;
+            });
         }
     }
 }

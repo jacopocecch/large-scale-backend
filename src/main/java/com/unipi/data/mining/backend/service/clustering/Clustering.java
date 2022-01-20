@@ -23,8 +23,6 @@ public class Clustering {
 
     private CustomUserRepository customUserRepository;
 
-    private final Utils utils;
-
     private final ArrayList<Attribute> attributes = new ArrayList<>();
     private Instances dataset;
     /* using the FilteredClusterer that allows to save the id of the user
@@ -41,13 +39,12 @@ public class Clustering {
         attributes.add(new Attribute("conscientiousness"));
         attributes.add(new Attribute("timeSpent"));
         this.mongoUserRepository = mongoUserRepository;
-        this.utils = utils;
         this.customUserRepository = customUserRepository;
     }
 
     public void startClustering() {
         System.out.println("Initializing the KMeans Clustering Algorithm....");
-        List<MongoUser> mongoUsers = mongoUserRepository.findAll();
+        List<MongoUser> mongoUsers = mongoUserRepository.findAllWithSurveyAndCluster();
         Map<String, MongoUser> mongoUserMap = mongoUsers.stream().collect(Collectors.toMap(mongoUser -> mongoUser.getId().toString(), Function.identity()));
         int numInstances = mongoUserMap.size();
         dataset = new Instances("PersonalityDataset", attributes, numInstances);
@@ -104,7 +101,9 @@ public class Clustering {
                 e.printStackTrace();
             }
         }
-        customUserRepository.bulkUpdateCluster(usersToBeUpdated);
+        if (!usersToBeUpdated.isEmpty()) {
+            customUserRepository.bulkUpdateCluster(usersToBeUpdated);
+        }
         System.out.println("Users' cluster updated!");
     }
 
