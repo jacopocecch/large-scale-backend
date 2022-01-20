@@ -57,7 +57,7 @@ public class UserService extends EntityService {
         mongoUser = mongoUserRepository.save(mongoUser);
         ObjectId objectId = mongoUser.getId();
 
-        Neo4jUser neo4jUser = new Neo4jUser(objectId.toString(), mongoUser.getFirstName() + " " + mongoUser.getLastName(), mongoUser.getCountry(), mongoUser.getImage());
+        Neo4jUser neo4jUser = new Neo4jUser(objectId.toString(), mongoUser.getFirstName(), mongoUser.getLastName(), mongoUser.getCountry(), mongoUser.getImage());
 
         neo4jUserDao.createUser(neo4jUser);
 
@@ -188,7 +188,6 @@ public class UserService extends EntityService {
     }
 
 
-    @Transactional
     public void populateNeo4jDatabase() {
 
         List<MongoUser> mongoUsers = mongoUserRepository.findAll();
@@ -200,7 +199,7 @@ public class UserService extends EntityService {
 
             if (optionalNeo4jUser.isPresent()) continue;
 
-            neo4jUserDao.createUser(new Neo4jUser(objectId, mongoUser.getFirstName() + " " + mongoUser.getLastName(), mongoUser.getCountry(), mongoUser.getImage()));
+            neo4jUserDao.createUser(new Neo4jUser(objectId, mongoUser.getFirstName(), mongoUser.getLastName(), mongoUser.getCountry(), mongoUser.getImage()));
         }
     }
 
@@ -236,8 +235,8 @@ public class UserService extends EntityService {
 
     private void updateNeo4jUserInfo(MongoUser newData, Neo4jUser dbData) {
 
-        if (!Objects.equals(newData.getFirstName() + " " + newData.getLastName(), dbData.getFullName())) {
-            dbData.setFullName(newData.getFirstName() + " " + newData.getLastName());
+        if (!Objects.equals(newData.getFirstName() + " " + newData.getLastName(), dbData.getFirstName())) {
+            dbData.setFirstName(newData.getFirstName() + " " + newData.getLastName());
         }
         if (!Objects.equals(dbData.getCountry(), newData.getCountry())) dbData.setCountry(newData.getCountry());
 
@@ -339,9 +338,8 @@ public class UserService extends EntityService {
         for (MongoUser mongoUser: mongoUsers) {
             String password = mongoUser.getPassword();
             mongoUser.setPassword(passwordEncoder.encode(password));
+            customUserRepository.updatePassword(mongoUser);
         }
-
-        mongoUserRepository.saveAll(mongoUsers);
     }
 
     public void generatePasswords() {
@@ -392,11 +390,9 @@ public class UserService extends EntityService {
 
                     String userEmail = mongoUser.getEmail();
                     userEmail = userEmail.replace("@", i + "@");
-                    mongoUser.setEmail(userEmail);
+                    customUserRepository.updateEmail(mongoUser, userEmail);
                     i++;
                 }
-
-                mongoUserRepository.saveAll(mongoUsers);
             }
         }
     }

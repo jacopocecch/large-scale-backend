@@ -5,7 +5,8 @@ import java.io.Serializable;
 public class Neo4jUserDto implements Serializable {
 
     private String id;
-    private String fullName;
+    private String firstName;
+    private String lastName;
     private String country;
     private String image;
     private FriendRequestDto friendRequest;
@@ -13,9 +14,10 @@ public class Neo4jUserDto implements Serializable {
     public Neo4jUserDto() {
     }
 
-    public Neo4jUserDto(String id, String fullName, String country, String image, FriendRequestDto friendRequest) {
+    public Neo4jUserDto(String id, String firstName, String lastName, String country, String image, FriendRequestDto friendRequest) {
         this.id = id;
-        this.fullName = fullName;
+        this.firstName = firstName;
+        this.lastName = lastName;
         this.country = country;
         this.image = image;
         this.friendRequest = friendRequest;
@@ -29,12 +31,12 @@ public class Neo4jUserDto implements Serializable {
         this.id = id;
     }
 
-    public String getFullName() {
-        return fullName;
+    public String getFirstName() {
+        return firstName;
     }
 
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
     }
 
     public String getImage() {
@@ -53,21 +55,19 @@ public class Neo4jUserDto implements Serializable {
         this.country = country;
     }
 
-    @Override
-    public String toString() {
-        return "Neo4jUserDto{" +
-                "id='" + id + '\'' +
-                ", fullName='" + fullName + '\'' +
-                ", country='" + country + '\'' +
-                ", image='" + image + '\'' +
-                '}';
-    }
-
     public FriendRequestDto getFriendRequest() {
         return friendRequest;
     }
 
     public void setFriendRequest(FriendRequestDto friendRequest) {
         this.friendRequest = friendRequest;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
     }
 }

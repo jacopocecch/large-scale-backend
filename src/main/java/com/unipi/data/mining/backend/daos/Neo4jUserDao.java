@@ -1,33 +1,19 @@
 package com.unipi.data.mining.backend.daos;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unipi.data.mining.backend.data.Distance;
 import com.unipi.data.mining.backend.entities.neo4j.FriendRequest;
 import com.unipi.data.mining.backend.entities.neo4j.Neo4jUser;
-import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.exceptions.Neo4jException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
 
 @Component
-public class Neo4jUserDao {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(Neo4jUserDao.class.getName());
-
-    private final ObjectMapper objectMapper = new ObjectMapper();
-
-    private final Driver driver;
-
-    public Neo4jUserDao(Driver driver) {
-        this.driver = driver;
-    }
+public class Neo4jUserDao extends Neo4jDao{
 
     public Optional<Neo4jUser> getByMongoId(String id) {
 
@@ -70,7 +56,7 @@ public class Neo4jUserDao {
 
             session.writeTransaction(transaction -> {
                 String query = """
-                        CREATE (u: User {mongoId: $mongo_id, name: $full_name, country: $country, picture: $image})""";
+                        CREATE (u: User {mongoId: $mongo_id, firstName: $first_name, lastName: $last_name, country: $country, picture: $image})""";
 
                 Map<String, Object> params = setCreateUpdateParameters(user);
 
@@ -87,7 +73,7 @@ public class Neo4jUserDao {
             session.writeTransaction(transaction -> {
                 String query = """
                         MATCH (u: User {mongoId: $mongo_id})
-                        SET u.name = $full_name, u.country = $country, u.picture = $image
+                        SET u.firstName: $first_name, u.lastName: $last_name, u.country = $country, u.picture = $image
                         RETURN u""";
 
                 Map<String, Object> params = setCreateUpdateParameters(user);
@@ -438,7 +424,8 @@ public class Neo4jUserDao {
 
         Map<String, Object> params = new HashMap<>();
         params.put("mongo_id", user.getMongoId());
-        params.put("full_name", user.getFullName());
+        params.put("first_name", user.getFirstName());
+        params.put("last_name", user.getLastName());
         params.put("country", user.getCountry());
         params.put("image", user.getImage());
         return params;

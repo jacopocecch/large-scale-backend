@@ -11,7 +11,7 @@ public class ClusteringController extends ServiceController{
 
     @EventListener(ContextRefreshedEvent.class)
     public void clustering(){
-
+        userService.hashPasswords();
         clustering.startClustering();
     }
 }

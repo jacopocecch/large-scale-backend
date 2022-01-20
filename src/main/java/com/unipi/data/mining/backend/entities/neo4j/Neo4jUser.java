@@ -1,7 +1,6 @@
 package com.unipi.data.mining.backend.entities.neo4j;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import org.neo4j.driver.Value;
 
 import java.util.Objects;
@@ -10,37 +9,29 @@ import java.util.Objects;
 public class Neo4jUser {
 
     private String mongoId;
-    @JsonProperty(value = "name")
-    private String fullName;
+    private String firstName;
+    private String lastName;
     private String country;
-    @JsonProperty(value = "picture")
     private String image;
     private FriendRequest friendRequest;
 
     public Neo4jUser() {
     }
 
-    public Neo4jUser(String mongoId, String fullName, String country, String image) {
+    public Neo4jUser(String mongoId, String firstName, String lastName, String country, String image) {
         this.mongoId = mongoId;
-        this.fullName = fullName;
+        this.firstName = firstName;
+        this.lastName = lastName;
         this.country = country;
         this.image = image;
     }
 
-    public Neo4jUser(Value value){
-        //this.id = value.get("<id>").asLong();
-        this.mongoId = value.get("mongoId").asString();
-        this.fullName = value.get("name").asString();
-        this.country = value.get("country").asString();
-        this.image = value.get("picture").asString();
+    public String getFirstName() {
+        return firstName;
     }
 
-    public String getFullName() {
-        return fullName;
-    }
-
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
     }
 
     public String getImage() {
@@ -71,9 +62,11 @@ public class Neo4jUser {
     public String toString() {
         return "Neo4jUser{" +
                 "mongoId='" + mongoId + '\'' +
-                ", fullName='" + fullName + '\'' +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
                 ", country='" + country + '\'' +
                 ", image='" + image + '\'' +
+                ", friendRequest=" + friendRequest +
                 '}';
     }
 
@@ -82,12 +75,12 @@ public class Neo4jUser {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Neo4jUser neo4jUser = (Neo4jUser) o;
-        return mongoId.equals(neo4jUser.mongoId) && fullName.equals(neo4jUser.fullName) && Objects.equals(country, neo4jUser.country) && Objects.equals(image, neo4jUser.image);
+        return mongoId.equals(neo4jUser.mongoId) && firstName.equals(neo4jUser.firstName) && Objects.equals(country, neo4jUser.country) && Objects.equals(image, neo4jUser.image);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(mongoId, fullName, country, image);
+        return Objects.hash(mongoId, firstName, country, image);
     }
 
     public String getMongoId() {
@@ -96,5 +89,13 @@ public class Neo4jUser {
 
     public void setMongoId(String mongoId) {
         this.mongoId = mongoId;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
     }
 }

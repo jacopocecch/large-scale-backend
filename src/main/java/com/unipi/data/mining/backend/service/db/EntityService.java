@@ -1,6 +1,10 @@
 package com.unipi.data.mining.backend.service.db;
 
+import com.unipi.data.mining.backend.daos.Neo4jSongDao;
 import com.unipi.data.mining.backend.daos.Neo4jUserDao;
+import com.unipi.data.mining.backend.entities.neo4j.Neo4jSong;
+import com.unipi.data.mining.backend.repositories.CustomUserRepository;
+import com.unipi.data.mining.backend.repositories.MongoSongRepository;
 import com.unipi.data.mining.backend.repositories.MongoUserRepository;
 import com.unipi.data.mining.backend.service.Utils;
 import com.unipi.data.mining.backend.service.clustering.Clustering;
@@ -14,6 +18,9 @@ abstract class EntityService {
     protected MongoUserRepository mongoUserRepository;
 
     @Autowired
+    protected MongoSongRepository mongoSongRepository;
+
+    @Autowired
     protected Neo4jUserDao neo4jUserDao;
 
     @Autowired
@@ -24,4 +31,10 @@ abstract class EntityService {
 
     @Autowired
     protected Utils utils;
+
+    @Autowired
+    protected Neo4jSongDao neo4jSongDao;
+
+    @Autowired
+    protected CustomUserRepository customUserRepository;
 }
