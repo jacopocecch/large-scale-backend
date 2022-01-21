@@ -515,8 +515,8 @@ public class Neo4jUserDao extends Neo4jDao{
     /*
 :auto USING PERIODIC COMMIT 500
 LOAD CSV WITH HEADERS FROM 'file:///user.csv' AS row
-WITH row._id as mongoId, row.country as country, row.first_name as firstName, row.last_name as lastName, row.picture as picture
-CREATE (u:User {mongoId: mongoId, country : country, firstName : firstName, lastName : lastName, picture : picture})
+WITH row._id as mongoId, row.country as country, row.first_name as firstName, row.last_name as lastName, row.username as username, row.picture as picture
+CREATE (u:User {mongoId: mongoId, country : country, firstName : firstName, lastName : lastName, username: username, picture : picture})
 
 CREATE CONSTRAINT user_id FOR (n:User) REQUIRE n.mongoId IS NODE KEY
 
@@ -529,7 +529,7 @@ CREATE (s:Song {mongoId: mongoId, name : name, album : album, artists : artists}
 CREATE CONSTRAINT song_id FOR (n:Song) REQUIRE n.mongoId IS NODE KEY
 
 :auto USING PERIODIC COMMIT 500
-LOAD CSV FROM 'file:///song_preference.csv' AS row
+LOAD CSV FROM 'file:///likes.csv' AS row
 WITH row[0] as userId, row[1] as songId, toInteger(row[2]) as preference
 MATCH (u:User), (s:Song)
 WHERE u.mongoId = userId AND s.mongoId = songId
@@ -541,6 +541,6 @@ WITH row[0] as fromUserId, row[1] as toUserId, toFloat(row[2]) as weight
 MATCH (u:User), (n:User)
 WHERE u.mongoId = fromUserId AND n.mongoId = toUserId
 MERGE (u)-[r:SIMILAR_TO]-(n
-SET r.weight = weight
+ON CREATE SET r.weight = weight
      */
 }

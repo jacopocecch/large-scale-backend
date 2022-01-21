@@ -2,6 +2,7 @@ package com.unipi.data.mining.backend.controllers.services;
 
 import com.unipi.data.mining.backend.dtos.Mapper;
 import com.unipi.data.mining.backend.service.clustering.Clustering;
+import com.unipi.data.mining.backend.service.db.DbService;
 import com.unipi.data.mining.backend.service.db.SongService;
 import com.unipi.data.mining.backend.service.db.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,4 +24,7 @@ abstract class ServiceController {
 
     @Autowired
     protected Mapper mapper;
+
+    @Autowired
+    protected DbService dbService;
 }

@@ -7,24 +7,24 @@ public class Neo4jSong {
 
     private String mongoId;
     private String name;
-    private String authors;
+    private String artists;
     private String album;
 
     public Neo4jSong() {
     }
 
 
-    public Neo4jSong(String mongoId, String name, String authors, String album) {
+    public Neo4jSong(String mongoId, String name, String artists, String album) {
         this.mongoId = mongoId;
         this.name = name;
-        this.authors = authors;
+        this.artists = artists;
         this.album = album;
     }
 
-    public Neo4jSong(String mongoId, String name, List<String> authors, String album) {
+    public Neo4jSong(String mongoId, String name, List<String> artists, String album) {
         this.mongoId = mongoId;
         this.name = name;
-        this.authors = String.join(", ", authors);
+        this.artists = String.join(", ", artists);
         this.album = album;
     }
 
@@ -44,16 +44,16 @@ public class Neo4jSong {
         this.name = name;
     }
 
-    public String getAuthors() {
-        return authors;
+    public String getArtists() {
+        return artists;
     }
 
-    public void setAuthors(String authors) {
-        this.authors = authors;
+    public void setArtists(String artists) {
+        this.artists = artists;
     }
 
     public void setAuthors(List<String> authors) {
-        this.authors = String.join(", ", authors);
+        this.artists = String.join(", ", authors);
     }
 
     public String getAlbum() {
@@ -69,7 +69,7 @@ public class Neo4jSong {
         return "Neo4jSong{" +
                 "mongoId=" + mongoId +
                 ", name='" + name + '\'' +
-                ", authors=" + authors +
+                ", authors=" + artists +
                 ", album='" + album + '\'' +
                 '}';
     }

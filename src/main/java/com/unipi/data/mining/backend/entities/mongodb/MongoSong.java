@@ -37,11 +37,12 @@ public class MongoSong {
     @Field("time_signature")
     private int timeSignature;
     private int year;
+    private Set<CommentSubset> comments;
 
     public MongoSong() {
     }
 
-    public MongoSong(ObjectId id, String name, String album, Set<String> artists, int trackNumber, int discNumber, boolean explicit, int key, int mode, double danceability, double energy, double loudness, double speechiness, double acousticness, double instrumentalness, double liveness, double valence, int tempo, int duration, int timeSignature, int year) {
+    public MongoSong(ObjectId id, String name, String album, Set<String> artists, int trackNumber, int discNumber, boolean explicit, int key, int mode, double danceability, double energy, double loudness, double speechiness, double acousticness, double instrumentalness, double liveness, double valence, int tempo, int duration, int timeSignature, int year, Set<CommentSubset> comments) {
         this.id = id;
         this.name = name;
         this.album = album;
@@ -63,6 +64,7 @@ public class MongoSong {
         this.duration = duration;
         this.timeSignature = timeSignature;
         this.year = year;
+        this.comments = comments;
     }
 
     public ObjectId getId() {
@@ -270,5 +272,21 @@ public class MongoSong {
 
     public void setAlbum(String album) {
         this.album = album;
+    }
+
+    public Set<CommentSubset> getComments() {
+        return comments;
+    }
+
+    public void setComments(Set<CommentSubset> comments) {
+        this.comments = comments;
+    }
+
+    public void addComment(CommentSubset comment){
+        this.comments.add(comment);
+    }
+
+    public void removeComment(CommentSubset comment){
+        this.comments.remove(comment);
     }
 }

@@ -142,7 +142,7 @@ public class Neo4jSongDao extends Neo4jDao{
         Map<String, Object> params = new HashMap<>();
         params.put("mongo_id", song.getMongoId());
         params.put("name", song.getName());
-        params.put("artists", song.getAuthors());
+        params.put("artists", song.getArtists());
         params.put("album", song.getAlbum());
         return params;
     }

@@ -1,11 +1,13 @@
 package com.unipi.data.mining.backend.repositories;
 
 import com.unipi.data.mining.backend.entities.mongodb.MongoSong;
+import com.unipi.data.mining.backend.entities.mongodb.MongoUser;
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.BulkOperations;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -52,6 +54,25 @@ public class CustomSongRepository extends CustomRepository{
         query.addCriteria(Criteria.where("name").regex("^" + name));
         query.with(Sort.by(Sort.Direction.ASC, "name"));
         return mongoTemplate.find(query, MongoSong.class);
+    }
+
+    public List<MongoSong> findToGenerateComments() {
+
+        Query query = new Query();
+        query.fields().include("id");
+        query.limit(10000);
+        return mongoTemplate.find(query, MongoSong.class);
+    }
+
+    public void bulkUpdateComments(List<MongoSong> songs) {
+
+        BulkOperations bulkOperations = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, MongoSong.class);
+        for (MongoSong song: songs) {
+            Update update = new Update();
+            update.set("comments", song.getComments());
+            bulkOperations.updateOne(Query.query(Criteria.where("id").is(song.getId())), update);
+        }
+        System.out.println(bulkOperations.execute());
     }
 
 }

@@ -91,4 +91,11 @@ public class CustomUserRepository extends CustomRepository{
         return mongoTemplate.find(query, MongoUser.class);
     }
 
+    public List<MongoUser> findToGenerateComments() {
+
+        Query query = new Query();
+        query.fields().include("first_name").include("last_name");
+        return mongoTemplate.find(query, MongoUser.class);
+    }
+
 }

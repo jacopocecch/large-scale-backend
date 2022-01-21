@@ -2,8 +2,11 @@ package com.unipi.data.mining.backend.service.db;
 
 import com.unipi.data.mining.backend.data.Distance;
 import com.unipi.data.mining.backend.data.Survey;
+import com.unipi.data.mining.backend.entities.mongodb.Comment;
+import com.unipi.data.mining.backend.entities.mongodb.CommentSubset;
 import com.unipi.data.mining.backend.entities.mongodb.MongoSong;
 import com.unipi.data.mining.backend.entities.mongodb.MongoUser;
+import org.bson.types.ObjectId;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -13,7 +16,7 @@ import java.io.PrintWriter;
 import java.util.*;
 
 @Service
-public class Neo4jService extends EntityService{
+public class DbService extends EntityService{
 
     private static final String CSV_FILE_NAME_LIKES = "/Users/jacopo/IdeaProjects/large-scale-project/large-scale-backend/song_preference.csv";
     private static final String CSV_FILE_NAME_SIMILARITIES = "/Users/jacopo/IdeaProjects/large-scale-project/large-scale-backend/similarities.csv";
@@ -122,7 +125,12 @@ public class Neo4jService extends EntityService{
             List<MongoUser> users = mongoUserRepository.findMongoUsersByCluster(i);
             Map<String, List<Distance>> stringListMap = new HashMap<>();
 
+            int index = 0;
+
             for (MongoUser user: users) {
+
+                System.out.println("User " + index);
+                index++;
 
                 Survey userSurvey = new Survey(user);
 
@@ -136,15 +144,39 @@ public class Neo4jService extends EntityService{
                 }
                 distances.sort(Comparator.comparingDouble(Distance::getDistance));
 
+                List<Distance> distanceList = new ArrayList<>();
+
                 for (int j = 0; j < 10; j++) {
                     Distance distance = distances.get(j);
+                    boolean contains = false;
+                    List<Distance> distances1 = stringListMap.get(distance.getUserId());
+                    if (distances1 != null)
+                    {
+                        for (Distance newDistance: stringListMap.get(distance.getUserId())){
+                            if (Objects.equals(newDistance.getUserId(), user.getId().toString())) {
+                                contains = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (!contains){
+                        distanceList.add(distance);
+                    }
+                }
+
+                stringListMap.put(user.getId().toString(), distanceList);
+            }
+
+            for (Map.Entry<String, List<Distance>> entry: stringListMap.entrySet()){
+
+                for (Distance distance: entry.getValue()) {
                     double weight;
                     if (distance.getDistance() == 0) {
                         weight = 100;
                     } else {
                         weight = Math.round(1/Math.pow(distance.getDistance(), 2)* 100.00) / 100.00;
                     }
-                    csvRelationships.add(new String[] {user.getId().toString(), distance.getUserId(), String.valueOf(weight)});
+                    csvRelationships.add(new String[] {entry.getKey(), distance.getUserId(), String.valueOf(weight)});
                 }
             }
         }
@@ -157,5 +189,58 @@ public class Neo4jService extends EntityService{
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
+    }
+
+    public void generateComments(){
+
+        Random random = new Random();
+
+        String[] comments = {"Nice song.", "Really dope!", "Awesome song!", "Best song!", "Wow, this sucks.", "Really amazing song!", "Really bad song.", "This song couldn't be worse", "The first album was better.", "The guitarist is not good at all", "Awesome sound", "Really chill", "Average song.", "Nothing special.", "This song could have been better.", "Really disappointed", "I love Taylor Swift"};
+
+        List<MongoUser> users = customUserRepository.findToGenerateComments();
+        List<MongoSong> songs = customSongRepository.findToGenerateComments();
+        List<Comment> toBeCreated = new ArrayList<>();
+        List<MongoSong> toBeUpdated = new ArrayList<>();
+
+        for (MongoSong song: songs) {
+
+            for (int i = 0; i < 15; i++) {
+                MongoUser user = users.get(random.nextInt(users.size()));
+                String text = comments[random.nextInt(comments.length)];
+                toBeCreated.add(createComment(user, text, song));
+            }
+            List<Comment> commentList = customCommentRepository.bulkInsertComments(toBeCreated);
+            commentList.sort(Comparator.comparing(Comment::getId));
+
+            for (int i = 0; i < 10; i++) {
+                song.addComment(createCommentSubset(commentList.get(i)));
+            }
+
+            toBeUpdated.add(song);
+        }
+
+        customSongRepository.bulkUpdateComments(toBeUpdated);
+    }
+
+    private Comment createComment(MongoUser user, String text, MongoSong song) {
+
+        Comment comment = new Comment();
+        comment.setName(user.getFirstName());
+        comment.setSurname(user.getLastName());
+        comment.setUserId(user.getId());
+        comment.setSongId(song.getId());
+        comment.setText(text);
+        return comment;
+    }
+
+    private CommentSubset createCommentSubset(Comment comment) {
+
+        CommentSubset commentSubset = new CommentSubset();
+        commentSubset.setName(comment.getName());
+        commentSubset.setSurname(comment.getSurname());
+        commentSubset.setUserId(comment.getUserId());
+        commentSubset.setText(comment.getText());
+        commentSubset.setCommentId(comment.getId());
+        return commentSubset;
     }
 }
