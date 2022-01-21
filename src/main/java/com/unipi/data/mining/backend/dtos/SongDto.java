@@ -50,11 +50,12 @@ public class SongDto implements Serializable {
     private int timeSignature;
     @Min(1950)
     private int year;
+    private List<CommentSubsetDto> comments;
 
     public SongDto() {
     }
 
-    public SongDto(ObjectId id, String name, String album, List<String> artists, int trackNumber, int discNumber, boolean explicit, int key, int mode, double danceability, double energy, double loudness, double speechiness, double acousticness, double instrumentalness, double liveness, double valence, int tempo, int duration, int timeSignature, int year) {
+    public SongDto(ObjectId id, String name, String album, List<String> artists, int trackNumber, int discNumber, boolean explicit, int key, int mode, double danceability, double energy, double loudness, double speechiness, double acousticness, double instrumentalness, double liveness, double valence, int tempo, int duration, int timeSignature, int year, List<CommentSubsetDto> comments) {
         this.id = id;
         this.name = name;
         this.album = album;
@@ -76,6 +77,7 @@ public class SongDto implements Serializable {
         this.duration = duration;
         this.timeSignature = timeSignature;
         this.year = year;
+        this.comments = comments;
     }
 
     public ObjectId getId() {
@@ -246,5 +248,11 @@ public class SongDto implements Serializable {
         this.year = year;
     }
 
+    public List<CommentSubsetDto> getComments() {
+        return comments;
+    }
 
+    public void setComments(List<CommentSubsetDto> comments) {
+        this.comments = comments;
+    }
 }
