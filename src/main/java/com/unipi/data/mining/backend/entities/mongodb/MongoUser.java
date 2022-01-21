@@ -7,6 +7,7 @@ import org.springframework.data.mongodb.core.mapping.MongoId;
 
 import java.time.LocalDate;
 import java.util.Objects;
+import java.util.Set;
 
 @Document("user")
 public class MongoUser {
@@ -37,11 +38,12 @@ public class MongoUser {
     @Field("time_spent")
     private double timeSpent;
     private int cluster;
+    private Set<CommentSubset> comments;
 
     public MongoUser() {
     }
 
-    public MongoUser(ObjectId id, String firstName, String lastName, LocalDate dateOfBirth, String gender, String country, String username, String phone, String email, String password, LocalDate registrationDate, String image, double extraversion, double agreeableness, double conscientiousness, double neuroticism, double openness, double timeSpent, int cluster) {
+    public MongoUser(ObjectId id, String firstName, String lastName, LocalDate dateOfBirth, String gender, String country, String username, String phone, String email, String password, LocalDate registrationDate, String image, double extraversion, double agreeableness, double conscientiousness, double neuroticism, double openness, double timeSpent, int cluster, Set<CommentSubset> comments) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -61,6 +63,7 @@ public class MongoUser {
         this.openness = openness;
         this.timeSpent = timeSpent;
         this.cluster = cluster;
+        this.comments = comments;
     }
 
     public ObjectId getId() {
@@ -251,5 +254,21 @@ public class MongoUser {
                 ", timeSpent=" + timeSpent +
                 ", cluster=" + cluster +
                 '}';
+    }
+
+    public Set<CommentSubset> getComments() {
+        return comments;
+    }
+
+    public void setComments(Set<CommentSubset> comments) {
+        this.comments = comments;
+    }
+
+    public void addComment(CommentSubset comment){
+        this.comments.add(comment);
+    }
+
+    public void removeComment(CommentSubset comment){
+        this.comments.remove(comment);
     }
 }

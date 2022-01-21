@@ -11,6 +11,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Past;
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.List;
 
 public class UserDto implements Serializable {
 
@@ -46,10 +47,11 @@ public class UserDto implements Serializable {
     private double openness;
     private double timeSpent;
     private int cluster;
+    private List<CommentSubsetDto> comments;
 
 
 
-    public UserDto(ObjectId id, String firstName, String lastName, LocalDate dateOfBirth, String gender, String country, String username, String phone, String email, String password, LocalDate registrationDate, String image, double extraversion, double agreeableness, double conscientiousness, double neuroticism, double openness, double timeSpent, int cluster) {
+    public UserDto(ObjectId id, String firstName, String lastName, LocalDate dateOfBirth, String gender, String country, String username, String phone, String email, String password, LocalDate registrationDate, String image, double extraversion, double agreeableness, double conscientiousness, double neuroticism, double openness, double timeSpent, int cluster, List<CommentSubsetDto> comments) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -69,6 +71,7 @@ public class UserDto implements Serializable {
         this.openness = openness;
         this.timeSpent = timeSpent;
         this.cluster = cluster;
+        this.comments = comments;
     }
 
     public UserDto(){
@@ -225,5 +228,13 @@ public class UserDto implements Serializable {
 
     public void setCluster(int cluster) {
         this.cluster = cluster;
+    }
+
+    public List<CommentSubsetDto> getComments() {
+        return comments;
+    }
+
+    public void setComments(List<CommentSubsetDto> comments) {
+        this.comments = comments;
     }
 }
