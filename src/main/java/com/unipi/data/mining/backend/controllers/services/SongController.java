@@ -1,14 +1,85 @@
 package com.unipi.data.mining.backend.controllers.services;
 
+import com.unipi.data.mining.backend.dtos.Neo4jSongDto;
+import com.unipi.data.mining.backend.dtos.Neo4jUserDto;
+import com.unipi.data.mining.backend.dtos.SongDto;
+import com.unipi.data.mining.backend.dtos.UserDto;
+import com.unipi.data.mining.backend.entities.mongodb.MongoSong;
+import com.unipi.data.mining.backend.entities.mongodb.MongoUser;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+import java.util.List;
 
 @RestController
 @RequestMapping("songs")
 public class SongController extends ServiceController{
 
+    @GetMapping("{id}")
+    ResponseEntity<SongDto> getById(@PathVariable("id") String id) {
+
+        return new ResponseEntity<>(
+                mapper.mongoSongToSongDto(songService.getMongoSongById(id)),
+                HttpStatus.OK
+        );
+    }
+
+    @Transactional
+    @DeleteMapping("{id}")
+    ResponseEntity<Object> deleteById(@PathVariable("id") String id) {
+
+        songService.deleteSongById(id);
+
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @Transactional
+    @PostMapping("create")
+    ResponseEntity<SongDto> createSong(@Valid @RequestBody SongDto songDto) {
+        MongoSong mongoSong = mapper.songDtoToMongoSong(songDto);
+        return new ResponseEntity<>(
+                mapper.mongoSongToSongDto(songService.createSong(mongoSong)),
+                HttpStatus.OK
+        );
+    }
+
+    @GetMapping("neo4j/{id}")
+    ResponseEntity<Neo4jSongDto> getNeo4jSong(@PathVariable("id") String id) {
+
+        return new ResponseEntity<>(
+                mapper.neo4jSongToNeo4jSongDto(songService.getNeo4jSongByMongoId(id)),
+                HttpStatus.OK
+        );
+    }
+
+    /*@GetMapping("search/{name}")
+    ResponseEntity<Neo4>
+
+     */
+
+    @GetMapping("recommended/{id}")
+    ResponseEntity<List<Neo4jSongDto>> getRecommendedSongs(@PathVariable("id") String id) {
+
+        return new ResponseEntity<>(
+                mapper.neo4jSongsToNeo4jSongsDto(songService.getRecommendedSongs(id)),
+                HttpStatus.OK
+        );
+    }
+
+    @Transactional
+    @PutMapping("like")
+    ResponseEntity<Object> likeSong(@RequestParam(value = "from") String fromUserId,
+                                    @RequestParam(value = "to") String toUserId,
+                                    @RequestParam(value = "status") @Min(-1) @Max(1) @NotNull int status) {
+
+        songService.likeSong(fromUserId, toUserId, status);
+
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
 }

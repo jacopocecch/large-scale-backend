@@ -29,13 +29,19 @@ public class MongoUser {
     private LocalDate registrationDate;
     @Field(name = "picture")
     private String image;
-    private Survey survey;
+    private double extraversion;
+    private double agreeableness;
+    private double conscientiousness;
+    private double neuroticism;
+    private double openness;
+    @Field("time_spent")
+    private double timeSpent;
     private int cluster;
 
     public MongoUser() {
     }
 
-    public MongoUser(ObjectId id, String firstName, String lastName, LocalDate dateOfBirth, String gender, String country, String username, String phone, String email, String password, LocalDate registrationDate, String image, Survey survey, int cluster) {
+    public MongoUser(ObjectId id, String firstName, String lastName, LocalDate dateOfBirth, String gender, String country, String username, String phone, String email, String password, LocalDate registrationDate, String image, double extraversion, double agreeableness, double conscientiousness, double neuroticism, double openness, double timeSpent, int cluster) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -48,7 +54,12 @@ public class MongoUser {
         this.password = password;
         this.registrationDate = registrationDate;
         this.image = image;
-        this.survey = survey;
+        this.extraversion = extraversion;
+        this.agreeableness = agreeableness;
+        this.conscientiousness = conscientiousness;
+        this.neuroticism = neuroticism;
+        this.openness = openness;
+        this.timeSpent = timeSpent;
         this.cluster = cluster;
     }
 
@@ -148,12 +159,52 @@ public class MongoUser {
         this.image = image;
     }
 
-    public Survey getSurvey() {
-        return survey;
+    public double getExtraversion() {
+        return extraversion;
     }
 
-    public void setSurvey(Survey survey) {
-        this.survey = survey;
+    public void setExtraversion(double extraversion) {
+        this.extraversion = extraversion;
+    }
+
+    public double getAgreeableness() {
+        return agreeableness;
+    }
+
+    public void setAgreeableness(double agreeableness) {
+        this.agreeableness = agreeableness;
+    }
+
+    public double getConscientiousness() {
+        return conscientiousness;
+    }
+
+    public void setConscientiousness(double conscientiousness) {
+        this.conscientiousness = conscientiousness;
+    }
+
+    public double getNeuroticism() {
+        return neuroticism;
+    }
+
+    public void setNeuroticism(double neuroticism) {
+        this.neuroticism = neuroticism;
+    }
+
+    public double getOpenness() {
+        return openness;
+    }
+
+    public void setOpenness(double openness) {
+        this.openness = openness;
+    }
+
+    public double getTimeSpent() {
+        return timeSpent;
+    }
+
+    public void setTimeSpent(double timeSpent) {
+        this.timeSpent = timeSpent;
     }
 
     public int getCluster() {
@@ -179,7 +230,7 @@ public class MongoUser {
 
     @Override
     public String toString() {
-        return "NewUser{" +
+        return "NewMongoUser{" +
                 "id=" + id +
                 ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
@@ -192,7 +243,12 @@ public class MongoUser {
                 ", password='" + password + '\'' +
                 ", registrationDate=" + registrationDate +
                 ", image='" + image + '\'' +
-                ", survey=" + survey +
+                ", extraversion=" + extraversion +
+                ", agreeableness=" + agreeableness +
+                ", conscientiousness=" + conscientiousness +
+                ", neuroticism=" + neuroticism +
+                ", openness=" + openness +
+                ", timeSpent=" + timeSpent +
                 ", cluster=" + cluster +
                 '}';
     }

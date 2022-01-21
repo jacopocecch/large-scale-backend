@@ -3,34 +3,35 @@ package com.unipi.data.mining.backend.service.db;
 import com.unipi.data.mining.backend.data.Counter;
 import com.unipi.data.mining.backend.data.Distance;
 import com.unipi.data.mining.backend.data.Login;
+import com.unipi.data.mining.backend.data.Survey;
 import com.unipi.data.mining.backend.entities.mongodb.MongoUser;
-import com.unipi.data.mining.backend.entities.mongodb.Survey;
-import com.unipi.data.mining.backend.entities.neo4j.Neo4jSong;
 import com.unipi.data.mining.backend.entities.neo4j.Neo4jUser;
-import com.unipi.data.mining.backend.service.exceptions.Neo4jRelationshipException;
+import com.unipi.data.mining.backend.service.exceptions.DbException;
 import com.unipi.data.mining.backend.service.exceptions.LoginException;
 import com.unipi.data.mining.backend.service.exceptions.RegistrationException;
 import com.unipi.data.mining.backend.service.exceptions.SimilarityException;
 import org.bson.types.ObjectId;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import scala.Int;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.time.LocalDate;
 import java.util.*;
 
 @Service
 public class UserService extends EntityService {
 
+    private static final String CSV_FILE_NAME = "/Users/jacopo/IdeaProjects/large-scale-project/large-scale-backend/similarities.csv";
+    private final int NUM_NEIGHBORS = 10;
 
     public MongoUser getMongoUserById(String id) {
 
         Optional<MongoUser> mongoUser = mongoUserRepository.findById(new ObjectId(id));
 
         if (mongoUser.isEmpty()) {
-            throw new Neo4jRelationshipException("No User found with id " + id);
+            throw new DbException("No User found with id " + id);
         }
 
         return mongoUser.get();
@@ -62,11 +63,11 @@ public class UserService extends EntityService {
         mongoUser = mongoUserRepository.save(mongoUser);
         ObjectId objectId = mongoUser.getId();
 
-        Neo4jUser neo4jUser = new Neo4jUser(objectId.toString(), mongoUser.getFirstName(), mongoUser.getLastName(), mongoUser.getCountry(), mongoUser.getImage());
+        Neo4jUser neo4jUser = new Neo4jUser(objectId.toString(), mongoUser.getFirstName(), mongoUser.getLastName(), mongoUser.getUsername(), mongoUser.getCountry(), mongoUser.getImage());
 
         neo4jUserDao.createUser(neo4jUser);
 
-        if (mongoUser.getSurvey() != null) {
+        if (utils.areSurveyValuesCorrect(mongoUser)) {
 
             clustering.performClustering(mongoUser);
             mongoUserRepository.save(mongoUser);
@@ -187,18 +188,9 @@ public class UserService extends EntityService {
 
         Optional<Neo4jUser> optionalNeo4jUser = neo4jUserDao.getByMongoId(id);
 
-        if (optionalNeo4jUser.isEmpty()) throw new Neo4jRelationshipException("Unable to find user with id: " + id + " on neo4j");
+        if (optionalNeo4jUser.isEmpty()) throw new DbException("Unable to find user with id: " + id + " on neo4j");
 
         return optionalNeo4jUser.get();
-    }
-
-    public Neo4jSong getNeo4jSongByMongoId(String id) {
-
-        Optional<Neo4jSong> optionalNeo4jSong = neo4jSongDao.getByMongoId(id);
-
-        if (optionalNeo4jSong.isEmpty()) throw new Neo4jRelationshipException("Unable to find song with id: " + id + " on neo4j");
-
-        return optionalNeo4jSong.get();
     }
 
     private void updateMongoUserInfo(MongoUser dbData, MongoUser newData) {
@@ -245,13 +237,11 @@ public class UserService extends EntityService {
 
         MongoUser mongoUser = getMongoUserById(id);
 
-        Survey survey = mongoUser.getSurvey();
-
-        if (survey == null) {
-            throw new RuntimeException("The user " + id + " does not have a survey");
+        if (!utils.areSurveyValuesCorrect(mongoUser)) {
+            throw new RuntimeException("The user " + id + " does not have a valid survey");
         }
 
-        return survey;
+        return new Survey(mongoUser);
     }
 
     public List<Neo4jUser> getFriends(String id) {
@@ -268,11 +258,11 @@ public class UserService extends EntityService {
 
         for (MongoUser mongoUser:mongoUsers) {
 
-            if (mongoUser.getSurvey() == null) {
+            if (!utils.areSurveyValuesCorrect(mongoUser)) {
                 continue;
             }
 
-            surveys.add(mongoUser.getSurvey());
+            surveys.add(new Survey(mongoUser));
         }
 
         Survey survey = new Survey();
@@ -305,14 +295,14 @@ public class UserService extends EntityService {
 
         getNeo4jUserByMongoId(mongoUser.getId().toString());
 
-        if (mongoUser.getSurvey() == null) {
+        if (!utils.areSurveyValuesCorrect(mongoUser)) {
             throw new RuntimeException("User does not have a survey");
         }
         if (mongoUser.getCluster() == 0){
             throw new RuntimeException("User does not belong to any cluster");
         }
 
-        Survey userSurvey = mongoUser.getSurvey();
+        Survey userSurvey = new Survey(mongoUser);
         List<MongoUser> mongoUsers = mongoUserRepository.findMongoUsersByCluster(mongoUser.getCluster());
 
         List<Distance> distances = new ArrayList<>();
@@ -320,13 +310,63 @@ public class UserService extends EntityService {
         for (MongoUser user: mongoUsers) {
 
             if (user.getId().toString().equals(mongoUser.getId().toString())) continue;
-            if (user.getSurvey() == null) continue;
-            Survey survey = user.getSurvey();
+            if (!utils.areSurveyValuesCorrect(user)) continue;
+            Survey survey = new Survey(user);
             distances.add(new Distance(user.getId().toString(), utils.getDistance(userSurvey, survey)));
         }
         distances.sort(Comparator.comparingDouble(Distance::getDistance));
 
-        neo4jUserDao.setNearestNeighbors(mongoUser.getId().toString(), distances);
+        neo4jUserDao.setNearestNeighbors(mongoUser.getId().toString(), distances, 30);
+    }
+
+    public void generateSimilarities() {
+
+        List<String[]> csvRelationships = new ArrayList<>();
+
+        for (int i = 1; i < 6; i++) {
+
+            List<MongoUser> users = mongoUserRepository.findMongoUsersByCluster(i);
+            Map<String, List<Distance>> stringListMap = new HashMap<>();
+
+            for (MongoUser user: users) {
+
+                Survey userSurvey = new Survey(user);
+
+                List<Distance> distances = new ArrayList<>();
+
+                for (MongoUser toUser: users) {
+                    if (user.getId().toString().equals(toUser.getId().toString())) continue;
+                    if (!utils.areSurveyValuesCorrect(toUser)) continue;
+                    Survey toUserSurvey = new Survey(toUser);
+                    distances.add(new Distance(toUser.getId().toString(), utils.getDistance(userSurvey, toUserSurvey)));
+                }
+                distances.sort(Comparator.comparingDouble(Distance::getDistance));
+
+                for (int j = 0; j < 10; j++) {
+                    Distance distance = distances.get(j);
+                    double weight;
+                    if (distance.getDistance() == 0) {
+                        weight = 100;
+                    } else {
+                        weight = Math.round(1/Math.pow(distance.getDistance(), 2)* 100.00) / 100.00;
+                    }
+                    csvRelationships.add(new String[] {user.getId().toString(), distance.getUserId(), String.valueOf(weight)});
+                }
+            }
+        }
+
+        File csvOutputFile = new File(CSV_FILE_NAME);
+        try (PrintWriter pw = new PrintWriter(csvOutputFile)) {
+            csvRelationships.stream()
+                    .map(this::convertToCSV)
+                    .forEach(pw::println);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private String convertToCSV(String[] data) {
+        return String.join(",", data);
     }
 
     public void hashPasswords() {
@@ -372,7 +412,6 @@ public class UserService extends EntityService {
     }
 
     public void changeDuplicateEmails() {
-
 
         List<MongoUser> users = mongoUserRepository.findEmails();
 
@@ -426,47 +465,10 @@ public class UserService extends EntityService {
         customUserRepository.bulkUpdateEmail(toBeUpdated);
     }
 
-    /*
-    public void convertUsers() {
+    public void quarantineUser(String id) {
 
-        List<MongoUser> mongoUsers = mongoUserRepository.findAll();
-        List<NewUser> newUsers = new ArrayList<>();
+        getNeo4jUserByMongoId(id);
 
-        for (MongoUser mongoUser: mongoUsers) {
-
-            if (mongoUser.getSurvey() == null) continue;
-
-            NewUser newUser = new NewUser();
-            newUser.setId(mongoUser.getId());
-            newUser.setFirstName(mongoUser.getFirstName());
-            newUser.setLastName(mongoUser.getLastName());
-            newUser.setDateOfBirth(mongoUser.getDateOfBirth());
-            newUser.setGender(mongoUser.getGender());
-            newUser.setCountry(mongoUser.getCountry());
-            newUser.setUsername(mongoUser.getUsername());
-            newUser.setPhone(mongoUser.getPhone());
-            newUser.setEmail(mongoUser.getEmail());
-            newUser.setPassword(mongoUser.getPassword());
-            newUser.setRegistrationDate(mongoUser.getRegistrationDate());
-            newUser.setImage(mongoUser.getImage());
-            newUser.setCluster(mongoUser.getCluster());
-
-            NewSurvey newSurvey = new NewSurvey();
-            ClusterValues clusterValues = utils.getClusterValues(mongoUser.getSurvey());
-            newSurvey.setAgreeableness(clusterValues.getAgreeableness());
-            newSurvey.setConscientiousness(clusterValues.getConscientiousness());
-            newSurvey.setNeuroticism(clusterValues.getNeuroticism());
-            newSurvey.setExtraversion(clusterValues.getExtraversion());
-            newSurvey.setOpenness(clusterValues.getOpenness());
-            newSurvey.setTimeSpent(clusterValues.getTimeSpent());
-
-            newUser.setSurvey(newSurvey);
-
-            newUsers.add(newUser);
-        }
-
-        mongoNewUserRepository.saveAll(newUsers);
+        neo4jUserDao.quarantineUser(id);
     }
-
-     */
 }

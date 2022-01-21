@@ -52,23 +52,23 @@ public class Neo4jSongDao extends Neo4jDao{
 
             return session.readTransaction(transaction -> {
                 String query = """
-                        MATCH (u:User)-[p:PREFERENCE]->(s:Song)<-[p2:PREFERENCE]-(su:User)
+                        MATCH (u:User)-[p:LIKES]->(s:Song)<-[p2:LIKES]-(su:User)
                         WHERE su.mongoId <> u.mongoId AND p.value = p2.value AND u.mongoId = $mongo_id
                         WITH u AS user, su AS similarUser, count(*) AS coherence
-                        MATCH (u:User)-[pr:PREFERENCE]->(s:Song)
+                        MATCH (u:User)-[pr:LIKES]->(s:Song)
                         WHERE u = user
                         WITH count(*) AS numLikes1, similarUser, user, coherence
-                        MATCH (u:User)-[pr:PREFERENCE]->(s:Song)
+                        MATCH (u:User)-[pr:LIKES]->(s:Song)
                         WHERE u = similarUser
                         WITH count(*) AS numLikes2, numLikes1, similarUser, user, coherence
                         UNWIND [numLikes1,numLikes2] AS numLikes
                         WITH user, similarUser, coherence/(toFloat(min(numLikes))) AS BetaStrenght
-                        MATCH (u:User)-[r:SIMILAR_TO]->(su:User)-[p:PREFERENCE]->(s:Song)
-                        WHERE u = user and su = similarUser AND NOT (u)-[:PREFERENCE]->(s)
+                        MATCH (u:User)-[r:SIMILAR_TO]->(su:User)-[p:LIKES]->(s:Song)
+                        WHERE u = user and su = similarUser AND NOT (u)-[:LIKES]->(s)
                         OPTIONAL MATCH (u)-[f:FRIEND_REQUEST {status: "accepted"}]->(su)
-                        WITH BetaStrenght, s AS Song, u AS User, su as SimilarUser, p as Preference, CASE when count(f)>0 then r.weight * 2 else r.weight end AS Weight
-                        RETURN Song, sum(0.8 * Weight * Preference.value + 0.2 * BetaStrenght * Preference.value) AS Strenght
-                        ORDER BY Strenght DESC
+                        WITH BetaStrength, s AS Song, u AS User, su as SimilarUser, p as Like, CASE when count(f)>0 then r.weight * 2 else r.weight end AS Weight
+                        RETURN Song, sum(0.8 * Weight * Like.value + 0.2 * BetaStrength * Like.value) AS Strength
+                        ORDER BY Strength DESC
                         LIMIT 50
                         """;
                 Map<String, Object> params = new HashMap<>();
@@ -81,26 +81,33 @@ public class Neo4jSongDao extends Neo4jDao{
         }
     }
 
-    private Object addOrUpdatePreference(Transaction transaction, String fromId, String toId, int preference) {
-        String query = """
+    public void updateLikeRelationship(String fromId, String toId, int like){
+
+        try (Session session = driver.session()){
+
+            session.writeTransaction(transaction -> {
+                String query = """
                         MATCH(u: User)
                         MATCH(s: Song)
                         WHERE u.mongoId = $from_mongo_id
                         AND s.mongoId = $to_mongo_id
-                        MERGE(u)-[r:SIMILAR_TO]-(s)
-                        SET r.value = $preference""";
+                        MERGE(u)-[r:LIKES]-(s)
+                        SET r.value = like""";
 
-        Map<String, Object> params = new HashMap<>();
-        params.put("from_mongo_id", fromId);
-        params.put("to_mongo_id", toId);
-        params.put("preference", preference);
-        try {
-            transaction.run(query, params);
-        } catch (Neo4jException e) {
-            LOGGER.error(query + " raised an exception", e);
-            throw e;
+                Map<String, Object> params = new HashMap<>();
+                params.put("from_mongo_id", fromId);
+                params.put("to_mongo_id", toId);
+                params.put("like", like);
+                try {
+                    Result result = transaction.run(query, params);
+                    System.out.println(result.consume().counters());
+                } catch (Neo4jException e) {
+                    LOGGER.error(query + " raised an exception", e);
+                    throw e;
+                }
+                return null;
+            });
         }
-        return null;
     }
 
     public void createSong(Neo4jSong song) {

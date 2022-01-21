@@ -69,4 +69,26 @@ public class CustomUserRepository extends CustomRepository{
         System.out.println(bulkOperations.execute());
     }
 
+    public void bulkCreateNewUser(List<MongoUser> users) {
+
+        System.out.println(mongoTemplate.insert(users, MongoUser.class));
+    }
+
+    public void bulkDeleteUsers(List<MongoUser> users) {
+
+        BulkOperations bulkOperations = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, MongoUser.class);
+        for (MongoUser user: users) {
+            Query query = Query.query(Criteria.where("id").is(user.getId()));
+            bulkOperations.remove(query);
+        }
+        System.out.println(bulkOperations.execute());
+    }
+
+    public List<MongoUser> findAllIds() {
+
+        Query query = new Query();
+        query.fields().include("id");
+        return mongoTemplate.find(query, MongoUser.class);
+    }
+
 }

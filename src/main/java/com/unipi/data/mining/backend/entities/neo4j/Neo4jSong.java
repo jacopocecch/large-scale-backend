@@ -1,10 +1,10 @@
 package com.unipi.data.mining.backend.entities.neo4j;
 
+import java.util.List;
 import java.util.Objects;
 
 public class Neo4jSong {
 
-    //object id di mongo, titolo, autore, (album)
     private String mongoId;
     private String name;
     private String authors;
@@ -18,6 +18,13 @@ public class Neo4jSong {
         this.mongoId = mongoId;
         this.name = name;
         this.authors = authors;
+        this.album = album;
+    }
+
+    public Neo4jSong(String mongoId, String name, List<String> authors, String album) {
+        this.mongoId = mongoId;
+        this.name = name;
+        this.authors = String.join(", ", authors);
         this.album = album;
     }
 
@@ -43,6 +50,10 @@ public class Neo4jSong {
 
     public void setAuthors(String authors) {
         this.authors = authors;
+    }
+
+    public void setAuthors(List<String> authors) {
+        this.authors = String.join(", ", authors);
     }
 
     public String getAlbum() {

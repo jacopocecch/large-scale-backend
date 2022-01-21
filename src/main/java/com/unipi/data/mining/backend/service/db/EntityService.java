@@ -3,6 +3,7 @@ package com.unipi.data.mining.backend.service.db;
 import com.unipi.data.mining.backend.daos.Neo4jSongDao;
 import com.unipi.data.mining.backend.daos.Neo4jUserDao;
 import com.unipi.data.mining.backend.entities.neo4j.Neo4jSong;
+import com.unipi.data.mining.backend.repositories.CustomSongRepository;
 import com.unipi.data.mining.backend.repositories.CustomUserRepository;
 import com.unipi.data.mining.backend.repositories.MongoSongRepository;
 import com.unipi.data.mining.backend.repositories.MongoUserRepository;
@@ -37,4 +38,7 @@ abstract class EntityService {
 
     @Autowired
     protected CustomUserRepository customUserRepository;
+
+    @Autowired
+    protected CustomSongRepository customSongRepository;
 }

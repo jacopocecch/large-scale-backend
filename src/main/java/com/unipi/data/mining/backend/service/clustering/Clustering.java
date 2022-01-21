@@ -1,11 +1,8 @@
 package com.unipi.data.mining.backend.service.clustering;
 
 import com.unipi.data.mining.backend.entities.mongodb.MongoUser;
-import com.unipi.data.mining.backend.entities.mongodb.Survey;
 import com.unipi.data.mining.backend.repositories.CustomUserRepository;
 import com.unipi.data.mining.backend.repositories.MongoUserRepository;
-import com.unipi.data.mining.backend.service.Utils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import weka.clusterers.FilteredClusterer;
 import weka.clusterers.SimpleKMeans;
@@ -29,7 +26,7 @@ public class Clustering {
     as attribute of the instance without considering it in the KMeans algorithm */
     private FilteredClusterer filteredClusterer;
 
-    public Clustering(MongoUserRepository mongoUserRepository, CustomUserRepository customUserRepository, Utils utils) {
+    public Clustering(MongoUserRepository mongoUserRepository, CustomUserRepository customUserRepository) {
         this.customUserRepository = customUserRepository;
         attributes.add(new Attribute("id",(ArrayList<String>)null));
         attributes.add(new Attribute("neurotic"));
@@ -127,14 +124,13 @@ public class Clustering {
     // function to determine the clusters' average values
     private double[] getValues(MongoUser mongoUser) {
         double[] values = new double[dataset.numAttributes()];
-        Survey survey = mongoUser.getSurvey();
         values[0] = dataset.attribute("id").addStringValue(mongoUser.getId().toString());
-        values[1] = survey.getNeuroticism();
-        values[2] = survey.getAgreeableness();
-        values[3] = survey.getOpenness();
-        values[4] = survey.getExtraversion();
-        values[5] = survey.getConscientiousness();
-        values[6] = survey.getTimeSpent();
+        values[1] = mongoUser.getNeuroticism();
+        values[2] = mongoUser.getAgreeableness();
+        values[3] = mongoUser.getOpenness();
+        values[4] = mongoUser.getExtraversion();
+        values[5] = mongoUser.getConscientiousness();
+        values[6] = mongoUser.getTimeSpent();
         return values;
     }
 }

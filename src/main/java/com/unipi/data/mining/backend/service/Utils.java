@@ -1,6 +1,7 @@
 package com.unipi.data.mining.backend.service;
 
-import com.unipi.data.mining.backend.entities.mongodb.Survey;
+import com.unipi.data.mining.backend.data.Survey;
+import com.unipi.data.mining.backend.entities.mongodb.MongoUser;
 import org.passay.CharacterData;
 import org.passay.CharacterRule;
 import org.passay.EnglishCharacterData;
@@ -51,5 +52,10 @@ public class Utils {
 
         return gen.generatePassword(10, splCharRule, lowerCaseRule,
                 upperCaseRule, digitRule);
+    }
+
+    public boolean areSurveyValuesCorrect(MongoUser mongoUser) {
+
+        return mongoUser.getExtraversion() != 0 && mongoUser.getAgreeableness() != 0 && mongoUser.getConscientiousness() != 0 && mongoUser.getNeuroticism() != 0 && mongoUser.getOpenness() != 0 && mongoUser.getTimeSpent() != 0;
     }
 }

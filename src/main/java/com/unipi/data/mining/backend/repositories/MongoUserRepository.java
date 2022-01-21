@@ -2,7 +2,6 @@ package com.unipi.data.mining.backend.repositories;
 
 import com.unipi.data.mining.backend.entities.mongodb.MongoUser;
 import org.bson.types.ObjectId;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 
@@ -17,10 +16,10 @@ public interface MongoUserRepository extends MongoRepository<MongoUser, ObjectId
 
     List<MongoUser> findMongoUsersByEmail(String email);
 
-    @Query(value="{}", fields = "{survey: 1, cluster: 1}")
+    @Query(value="{}", fields = "{extraversion: 1, agreeableness: 1, conscientiousness: 1, neuroticism: 1, openness: 1, time_spent: 1, cluster: 1}")
     List<MongoUser> findAllWithSurveyAndCluster();
 
-    @Query(value="{'cluster': ?0}", fields = "{survey: 1}")
+    @Query(value="{'cluster': ?0}", fields = "{extraversion: 1, agreeableness: 1, conscientiousness: 1, neuroticism: 1, openness: 1, time_spent: 1}")
     List<MongoUser> findMongoUsersByCluster(int cluster);
 
     @Query(value="{}", fields = "{email: 1}")

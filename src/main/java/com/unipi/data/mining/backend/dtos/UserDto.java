@@ -39,10 +39,17 @@ public class UserDto implements Serializable {
     private String password;
     private LocalDate registrationDate;
     private String image;
-    private SurveyDto survey;
+    private double extraversion;
+    private double agreeableness;
+    private double conscientiousness;
+    private double neuroticism;
+    private double openness;
+    private double timeSpent;
     private int cluster;
 
-    public UserDto(ObjectId id, String firstName, String lastName, LocalDate dateOfBirth, String gender, String country, String username, String phone, String email, String password, String image, SurveyDto survey, LocalDate registrationDate, int cluster) {
+
+
+    public UserDto(ObjectId id, String firstName, String lastName, LocalDate dateOfBirth, String gender, String country, String username, String phone, String email, String password, LocalDate registrationDate, String image, double extraversion, double agreeableness, double conscientiousness, double neuroticism, double openness, double timeSpent, int cluster) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -55,12 +62,25 @@ public class UserDto implements Serializable {
         this.password = password;
         this.registrationDate = registrationDate;
         this.image = image;
-        this.survey = survey;
+        this.extraversion = extraversion;
+        this.agreeableness = agreeableness;
+        this.conscientiousness = conscientiousness;
+        this.neuroticism = neuroticism;
+        this.openness = openness;
+        this.timeSpent = timeSpent;
         this.cluster = cluster;
     }
 
     public UserDto(){
 
+    }
+
+    public ObjectId getId() {
+        return id;
+    }
+
+    public void setId(ObjectId id) {
+        this.id = id;
     }
 
     public String getFirstName() {
@@ -135,22 +155,6 @@ public class UserDto implements Serializable {
         this.password = password;
     }
 
-    public String getImage() {
-        return image;
-    }
-
-    public void setImage(String image) {
-        this.image = image;
-    }
-
-    public SurveyDto getSurvey() {
-        return survey;
-    }
-
-    public void setSurvey(SurveyDto survey) {
-        this.survey = survey;
-    }
-
     public LocalDate getRegistrationDate() {
         return registrationDate;
     }
@@ -159,12 +163,60 @@ public class UserDto implements Serializable {
         this.registrationDate = registrationDate;
     }
 
-    public ObjectId getId() {
-        return this.id;
+    public String getImage() {
+        return image;
     }
 
-    public void setId(ObjectId id) {
-        this.id = id;
+    public void setImage(String image) {
+        this.image = image;
+    }
+
+    public double getExtraversion() {
+        return extraversion;
+    }
+
+    public void setExtraversion(double extraversion) {
+        this.extraversion = extraversion;
+    }
+
+    public double getAgreeableness() {
+        return agreeableness;
+    }
+
+    public void setAgreeableness(double agreeableness) {
+        this.agreeableness = agreeableness;
+    }
+
+    public double getConscientiousness() {
+        return conscientiousness;
+    }
+
+    public void setConscientiousness(double conscientiousness) {
+        this.conscientiousness = conscientiousness;
+    }
+
+    public double getNeuroticism() {
+        return neuroticism;
+    }
+
+    public void setNeuroticism(double neuroticism) {
+        this.neuroticism = neuroticism;
+    }
+
+    public double getOpenness() {
+        return openness;
+    }
+
+    public void setOpenness(double openness) {
+        this.openness = openness;
+    }
+
+    public double getTimeSpent() {
+        return timeSpent;
+    }
+
+    public void setTimeSpent(double timeSpent) {
+        this.timeSpent = timeSpent;
     }
 
     public int getCluster() {

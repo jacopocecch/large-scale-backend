@@ -1,7 +1,6 @@
 package com.unipi.data.mining.backend.daos;
 
 import com.unipi.data.mining.backend.data.Distance;
-import com.unipi.data.mining.backend.entities.mongodb.MongoUser;
 import com.unipi.data.mining.backend.entities.neo4j.FriendRequest;
 import com.unipi.data.mining.backend.entities.neo4j.Neo4jUser;
 import org.neo4j.driver.Record;
@@ -57,7 +56,7 @@ public class Neo4jUserDao extends Neo4jDao{
 
             session.writeTransaction(transaction -> {
                 String query = """
-                        CREATE (u: User {mongoId: $mongo_id, firstName: $first_name, lastName: $last_name, country: $country, picture: $image})""";
+                        CREATE (u: User {mongoId: $mongo_id, firstName: $first_name, lastName: $last_name, username: $username, country: $country, picture: $image})""";
 
                 Map<String, Object> params = setCreateUpdateParameters(user);
 
@@ -74,7 +73,7 @@ public class Neo4jUserDao extends Neo4jDao{
             session.writeTransaction(transaction -> {
                 String query = """
                         MATCH (u: User {mongoId: $mongo_id})
-                        SET u.firstName: $first_name, u.lastName: $last_name, u.country = $country, u.picture = $image
+                        SET u.firstName: $first_name, u.lastName: $last_name, u.username: $username, u.country = $country, u.picture = $image
                         RETURN u""";
 
                 Map<String, Object> params = setCreateUpdateParameters(user);
@@ -236,7 +235,7 @@ public class Neo4jUserDao extends Neo4jDao{
                 String query = """
                          MATCH (u:User)-[f:FRIEND_REQUEST]-(:User)
                          WHERE u.mongoId = $mongo_id
-                         DELETE f  
+                         DELETE f
                         """;
 
                 Map<String, Object> params = Collections.singletonMap("mongo_id", id);
@@ -244,7 +243,7 @@ public class Neo4jUserDao extends Neo4jDao{
                 query = """
                          MATCH (u:User)-[r:SIMILAR_TO]-(:User)
                          WHERE u.mongoId = $mongo_id
-                         SET r.weight = 0 
+                         SET r.weight = 0
                 """;
                 params = Collections.singletonMap("mongo_id", id);
                 runTransaction(transaction, query, params);
@@ -397,26 +396,27 @@ public class Neo4jUserDao extends Neo4jDao{
         }
     }
 
-    public void setNearestNeighbors(String id, List<Distance> distances) {
+    public void setNearestNeighbors(String id, List<Distance> distances, int k) {
 
         try (Session session = driver.session()) {
 
             session.writeTransaction(transaction -> {
 
-                for (int i = 0; i < 30; i++) {
+                for (int i = 0; i < k; i++) {
                     Distance distance = distances.get(i);
                     Optional<Neo4jUser> optionalNeo4jUser = getByMongoId(distance.getUserId());
                     if (optionalNeo4jUser.isEmpty()) {
                         continue;
                     }
                     Neo4jUser neo4jUser = optionalNeo4jUser.get();
+
                     double weight;
                     if (distance.getDistance() == 0) {
-                        weight = 10;
+                        weight = 100;
                     } else {
-                        weight = Math.round(1/distance.getDistance()* 100.00) / 100.00;
+                        weight = Math.round(1/Math.pow(distance.getDistance(), 2)* 100.00) / 100.00;
                     }
-                    addOrUpdateSimilarity(transaction, id, neo4jUser.getMongoId(), weight);
+                    addOrUpdateSimilarity(transaction, id, distance.getUserId(), weight);
                 }
                 return null;
             });
@@ -452,6 +452,7 @@ public class Neo4jUserDao extends Neo4jDao{
         params.put("mongo_id", user.getMongoId());
         params.put("first_name", user.getFirstName());
         params.put("last_name", user.getLastName());
+        params.put("username", user.getUsername());
         params.put("country", user.getCountry());
         params.put("image", user.getImage());
         return params;
@@ -517,10 +518,29 @@ LOAD CSV WITH HEADERS FROM 'file:///user.csv' AS row
 WITH row._id as mongoId, row.country as country, row.first_name as firstName, row.last_name as lastName, row.picture as picture
 CREATE (u:User {mongoId: mongoId, country : country, firstName : firstName, lastName : lastName, picture : picture})
 
+CREATE CONSTRAINT user_id FOR (n:User) REQUIRE n.mongoId IS NODE KEY
+
 
 :auto USING PERIODIC COMMIT 500
 LOAD CSV WITH HEADERS FROM 'file:///song.csv' AS row
 WITH row.mongoId as mongoId, row.name as name, row.album as album, row.artists as artists
 CREATE (s:Song {mongoId: mongoId, name : name, album : album, artists : artists})
+
+CREATE CONSTRAINT song_id FOR (n:Song) REQUIRE n.mongoId IS NODE KEY
+
+:auto USING PERIODIC COMMIT 500
+LOAD CSV FROM 'file:///song_preference.csv' AS row
+WITH row[0] as userId, row[1] as songId, toInteger(row[2]) as preference
+MATCH (u:User), (s:Song)
+WHERE u.mongoId = userId AND s.mongoId = songId
+CREATE (u)-[r:LIKES {value: preference}]->(s)
+
+:auto USING PERIODIC COMMIT 500
+LOAD CSV FROM 'file:///similarities.csv' AS row
+WITH row[0] as fromUserId, row[1] as toUserId, toFloat(row[2]) as weight
+MATCH (u:User), (n:User)
+WHERE u.mongoId = fromUserId AND n.mongoId = toUserId
+MERGE (u)-[r:SIMILAR_TO]-(n
+SET r.weight = weight
      */
 }

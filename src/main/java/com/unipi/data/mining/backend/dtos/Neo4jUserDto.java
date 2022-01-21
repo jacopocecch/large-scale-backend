@@ -7,6 +7,7 @@ public class Neo4jUserDto implements Serializable {
     private String id;
     private String firstName;
     private String lastName;
+    private String username;
     private String country;
     private String image;
     private FriendRequestDto friendRequest;
@@ -14,10 +15,11 @@ public class Neo4jUserDto implements Serializable {
     public Neo4jUserDto() {
     }
 
-    public Neo4jUserDto(String id, String firstName, String lastName, String country, String image, FriendRequestDto friendRequest) {
+    public Neo4jUserDto(String id, String firstName, String lastName, String username, String country, String image, FriendRequestDto friendRequest) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
+        this.username = username;
         this.country = country;
         this.image = image;
         this.friendRequest = friendRequest;
@@ -69,5 +71,13 @@ public class Neo4jUserDto implements Serializable {
 
     public void setLastName(String lastName) {
         this.lastName = lastName;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 }

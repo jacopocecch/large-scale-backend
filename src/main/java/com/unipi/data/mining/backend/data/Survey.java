@@ -1,12 +1,8 @@
-package com.unipi.data.mining.backend.entities.mongodb;
+package com.unipi.data.mining.backend.data;
 
-import org.springframework.data.mongodb.core.mapping.Document;
+import com.unipi.data.mining.backend.entities.mongodb.MongoUser;
 import org.springframework.data.mongodb.core.mapping.Field;
 
-import java.util.ArrayList;
-import java.util.List;
-
-@Document
 public class Survey {
 
     private double extraversion;
@@ -14,10 +10,18 @@ public class Survey {
     private double conscientiousness;
     private double neuroticism;
     private double openness;
-    @Field("time_spent")
     private double timeSpent;
 
     public Survey() {
+    }
+
+    public Survey(MongoUser user) {
+        this.extraversion = user.getExtraversion();
+        this.agreeableness = user.getAgreeableness();
+        this.conscientiousness = user.getConscientiousness();
+        this.neuroticism = user.getNeuroticism();
+        this.openness = user.getOpenness();
+        this.timeSpent = user.getTimeSpent();
     }
 
     public Survey(double extraversion, double agreeableness, double conscientiousness, double neuroticism, double openness, double timeSpent) {
@@ -75,17 +79,5 @@ public class Survey {
 
     public void setTimeSpent(double timeSpent) {
         this.timeSpent = timeSpent;
-    }
-
-    @Override
-    public String toString() {
-        return "Survey{" +
-                "extraversion=" + extraversion +
-                ", agreeableness=" + agreeableness +
-                ", conscientiousness=" + conscientiousness +
-                ", neuroticism=" + neuroticism +
-                ", openness=" + openness +
-                ", timeSpent=" + timeSpent +
-                '}';
     }
 }

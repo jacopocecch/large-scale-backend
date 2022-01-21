@@ -1,12 +1,6 @@
 package com.unipi.data.mining.backend.dtos;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import org.springframework.data.mongodb.core.mapping.Field;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-
-public class SurveyDto implements Serializable {
+public class SurveyDto {
 
     private double extraversion;
     private double agreeableness;
@@ -75,4 +69,3 @@ public class SurveyDto implements Serializable {
         this.timeSpent = timeSpent;
     }
 }
-
