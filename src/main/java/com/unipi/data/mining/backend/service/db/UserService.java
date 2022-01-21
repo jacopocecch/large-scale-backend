@@ -14,17 +14,11 @@ import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
 import java.time.LocalDate;
 import java.util.*;
 
 @Service
 public class UserService extends EntityService {
-
-    private static final String CSV_FILE_NAME = "/Users/jacopo/IdeaProjects/large-scale-project/large-scale-backend/similarities.csv";
-    private final int NUM_NEIGHBORS = 10;
 
     public MongoUser getMongoUserById(String id) {
 
@@ -319,55 +313,6 @@ public class UserService extends EntityService {
         neo4jUserDao.setNearestNeighbors(mongoUser.getId().toString(), distances, 30);
     }
 
-    public void generateSimilarities() {
-
-        List<String[]> csvRelationships = new ArrayList<>();
-
-        for (int i = 1; i < 6; i++) {
-
-            List<MongoUser> users = mongoUserRepository.findMongoUsersByCluster(i);
-            Map<String, List<Distance>> stringListMap = new HashMap<>();
-
-            for (MongoUser user: users) {
-
-                Survey userSurvey = new Survey(user);
-
-                List<Distance> distances = new ArrayList<>();
-
-                for (MongoUser toUser: users) {
-                    if (user.getId().toString().equals(toUser.getId().toString())) continue;
-                    if (!utils.areSurveyValuesCorrect(toUser)) continue;
-                    Survey toUserSurvey = new Survey(toUser);
-                    distances.add(new Distance(toUser.getId().toString(), utils.getDistance(userSurvey, toUserSurvey)));
-                }
-                distances.sort(Comparator.comparingDouble(Distance::getDistance));
-
-                for (int j = 0; j < 10; j++) {
-                    Distance distance = distances.get(j);
-                    double weight;
-                    if (distance.getDistance() == 0) {
-                        weight = 100;
-                    } else {
-                        weight = Math.round(1/Math.pow(distance.getDistance(), 2)* 100.00) / 100.00;
-                    }
-                    csvRelationships.add(new String[] {user.getId().toString(), distance.getUserId(), String.valueOf(weight)});
-                }
-            }
-        }
-
-        File csvOutputFile = new File(CSV_FILE_NAME);
-        try (PrintWriter pw = new PrintWriter(csvOutputFile)) {
-            csvRelationships.stream()
-                    .map(this::convertToCSV)
-                    .forEach(pw::println);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private String convertToCSV(String[] data) {
-        return String.join(",", data);
-    }
 
     public void hashPasswords() {
 

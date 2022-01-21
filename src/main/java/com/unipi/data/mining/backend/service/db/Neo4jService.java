@@ -1,5 +1,7 @@
 package com.unipi.data.mining.backend.service.db;
 
+import com.unipi.data.mining.backend.data.Distance;
+import com.unipi.data.mining.backend.data.Survey;
 import com.unipi.data.mining.backend.entities.mongodb.MongoSong;
 import com.unipi.data.mining.backend.entities.mongodb.MongoUser;
 import org.springframework.data.domain.Sort;
@@ -8,14 +10,13 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 @Service
 public class Neo4jService extends EntityService{
 
     private static final String CSV_FILE_NAME_LIKES = "/Users/jacopo/IdeaProjects/large-scale-project/large-scale-backend/song_preference.csv";
+    private static final String CSV_FILE_NAME_SIMILARITIES = "/Users/jacopo/IdeaProjects/large-scale-project/large-scale-backend/similarities.csv";
 
     public void addLikesHeuristic() {
 
@@ -110,5 +111,51 @@ public class Neo4jService extends EntityService{
         }
 
         return maxAt;
+    }
+
+    public void generateSimilarities() {
+
+        List<String[]> csvRelationships = new ArrayList<>();
+
+        for (int i = 1; i < 6; i++) {
+
+            List<MongoUser> users = mongoUserRepository.findMongoUsersByCluster(i);
+            Map<String, List<Distance>> stringListMap = new HashMap<>();
+
+            for (MongoUser user: users) {
+
+                Survey userSurvey = new Survey(user);
+
+                List<Distance> distances = new ArrayList<>();
+
+                for (MongoUser toUser: users) {
+                    if (user.getId().toString().equals(toUser.getId().toString())) continue;
+                    if (!utils.areSurveyValuesCorrect(toUser)) continue;
+                    Survey toUserSurvey = new Survey(toUser);
+                    distances.add(new Distance(toUser.getId().toString(), utils.getDistance(userSurvey, toUserSurvey)));
+                }
+                distances.sort(Comparator.comparingDouble(Distance::getDistance));
+
+                for (int j = 0; j < 10; j++) {
+                    Distance distance = distances.get(j);
+                    double weight;
+                    if (distance.getDistance() == 0) {
+                        weight = 100;
+                    } else {
+                        weight = Math.round(1/Math.pow(distance.getDistance(), 2)* 100.00) / 100.00;
+                    }
+                    csvRelationships.add(new String[] {user.getId().toString(), distance.getUserId(), String.valueOf(weight)});
+                }
+            }
+        }
+
+        File csvOutputFile = new File(CSV_FILE_NAME_SIMILARITIES);
+        try (PrintWriter pw = new PrintWriter(csvOutputFile)) {
+            csvRelationships.stream()
+                    .map(this::convertToCSV)
+                    .forEach(pw::println);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 }
