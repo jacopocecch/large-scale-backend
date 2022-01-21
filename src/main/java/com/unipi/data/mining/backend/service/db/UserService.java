@@ -5,6 +5,7 @@ import com.unipi.data.mining.backend.data.Distance;
 import com.unipi.data.mining.backend.data.Login;
 import com.unipi.data.mining.backend.entities.mongodb.MongoUser;
 import com.unipi.data.mining.backend.entities.mongodb.Survey;
+import com.unipi.data.mining.backend.entities.neo4j.Neo4jSong;
 import com.unipi.data.mining.backend.entities.neo4j.Neo4jUser;
 import com.unipi.data.mining.backend.service.exceptions.Neo4jRelationshipException;
 import com.unipi.data.mining.backend.service.exceptions.LoginException;

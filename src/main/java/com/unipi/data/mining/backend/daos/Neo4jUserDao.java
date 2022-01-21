@@ -230,6 +230,32 @@ public class Neo4jUserDao extends Neo4jDao{
         }
     }
 
+    public void quarantineUser(String id) {
+        try (Session session = driver.session()){
+
+            session.writeTransaction(transaction -> {
+                String query = """
+                         MATCH (u:User)-[f:FRIEND_REQUEST]-(:User)
+                         WHERE u.mongoId = $mongo_id
+                         DELETE f  
+                        """;
+
+                Map<String, Object> params = Collections.singletonMap("mongo_id", id);
+                runTransaction(transaction, query, params);
+                query = """
+                         MATCH (u:User)-[r:SIMILAR_TO]-(:User)
+                         WHERE u.mongoId = $mongo_id
+                         SET r.weight = 0 
+                """;
+                params = Collections.singletonMap("mongo_id", id);
+                runTransaction(transaction, query, params);
+                return null;
+            });
+        }
+    }
+
+
+
     public boolean areFriends(String fromId, String toId) {
 
         try (Session session = driver.session()){
