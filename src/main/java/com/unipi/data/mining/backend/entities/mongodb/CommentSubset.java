@@ -3,25 +3,21 @@ package com.unipi.data.mining.backend.entities.mongodb;
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
-import org.springframework.data.mongodb.core.mapping.MongoId;
 
 import java.util.Objects;
 
-@Document("comment")
-public class Comment {
+@Document
+public class CommentSubset {
 
-    //id, id canzone, id utente, testo
-    @MongoId
-    private ObjectId id;
+    @Field("comment_id")
+    private ObjectId commentId;
     @Field("user_id")
     private ObjectId userId;
-    @Field("song_id")
-    private ObjectId songId;
     private String name;
     private String surname;
     private String text;
 
-    public Comment() {
+    public CommentSubset() {
     }
 
     public String getName() {
@@ -40,21 +36,20 @@ public class Comment {
         this.surname = surname;
     }
 
-    public Comment(ObjectId id, ObjectId userId, ObjectId songId, String name, String surname, String text) {
-        this.id = id;
+    public CommentSubset(ObjectId commentId, ObjectId userId, String name, String surname, String text) {
+        this.commentId = commentId;
         this.userId = userId;
-        this.songId = songId;
         this.name = name;
         this.surname = surname;
         this.text = text;
     }
 
-    public ObjectId getId() {
-        return id;
+    public ObjectId getCommentId() {
+        return commentId;
     }
 
-    public void setId(ObjectId id) {
-        this.id = id;
+    public void setCommentId(ObjectId commentId) {
+        this.commentId = commentId;
     }
 
     public ObjectId getUserId() {
@@ -63,14 +58,6 @@ public class Comment {
 
     public void setUserId(ObjectId userId) {
         this.userId = userId;
-    }
-
-    public ObjectId getSongId() {
-        return songId;
-    }
-
-    public void setSongId(ObjectId songId) {
-        this.songId = songId;
     }
 
     public String getText() {
@@ -82,25 +69,15 @@ public class Comment {
     }
 
     @Override
-    public String toString() {
-        return "Comment{" +
-                "id=" + id +
-                ", userId=" + userId +
-                ", songId=" + songId +
-                ", text='" + text + '\'' +
-                '}';
-    }
-
-    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Comment comment = (Comment) o;
-        return id.equals(comment.id) && userId.equals(comment.userId) && songId.equals(comment.songId);
+        CommentSubset that = (CommentSubset) o;
+        return commentId.equals(that.commentId) && userId.equals(that.userId) && text.equals(that.text);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, userId, songId);
+        return Objects.hash(commentId, userId, text);
     }
 }
