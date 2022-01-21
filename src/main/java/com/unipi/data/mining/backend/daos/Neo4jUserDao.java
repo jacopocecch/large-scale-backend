@@ -97,7 +97,6 @@ public class Neo4jUserDao extends Neo4jDao{
                     RETURN friend""";
 
                 Map<String, Object> params = Collections.singletonMap("mongo_id", id);
-
                 return getNeo4jUsers(transaction, query, params);
             });
         }
