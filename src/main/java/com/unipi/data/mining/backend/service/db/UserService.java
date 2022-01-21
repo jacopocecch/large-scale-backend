@@ -192,6 +192,15 @@ public class UserService extends EntityService {
         return optionalNeo4jUser.get();
     }
 
+    public Neo4jSong getNeo4jSongByMongoId(String id) {
+
+        Optional<Neo4jSong> optionalNeo4jSong = neo4jSongDao.getByMongoId(id);
+
+        if (optionalNeo4jSong.isEmpty()) throw new Neo4jRelationshipException("Unable to find song with id: " + id + " on neo4j");
+
+        return optionalNeo4jSong.get();
+    }
+
     private void updateMongoUserInfo(MongoUser dbData, MongoUser newData) {
 
         if (!Objects.equals(dbData.getFirstName(), newData.getFirstName())) dbData.setFirstName(newData.getFirstName());

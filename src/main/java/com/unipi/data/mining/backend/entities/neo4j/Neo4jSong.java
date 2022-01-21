@@ -13,6 +13,7 @@ public class Neo4jSong {
     public Neo4jSong() {
     }
 
+
     public Neo4jSong(String mongoId, String name, String authors, String album) {
         this.mongoId = mongoId;
         this.name = name;
