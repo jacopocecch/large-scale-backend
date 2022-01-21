@@ -52,22 +52,23 @@ public class Neo4jSongDao extends Neo4jDao{
 
             return session.readTransaction(transaction -> {
                 String query = """
-                        MATCH (u:User)-[p:LIKES]->(s:Song)<-[p2:LIKES]-(su:User)
-                        WHERE su.mongoId <> u.mongoId AND p.value = p2.value AND u.mongoId = $mongo_id
-                        WITH u AS user, su AS similarUser, count(*) AS coherence
-                        MATCH (u:User)-[pr:LIKES]->(s:Song)
-                        WHERE u = user
-                        WITH count(*) AS numLikes1, similarUser, user, coherence
-                        MATCH (u:User)-[pr:LIKES]->(s:Song)
-                        WHERE u = similarUser
-                        WITH count(*) AS numLikes2, numLikes1, similarUser, user, coherence
-                        UNWIND [numLikes1,numLikes2] AS numLikes
-                        WITH user, similarUser, coherence/(toFloat(min(numLikes))) AS BetaStrenght
                         MATCH (u:User)-[r:SIMILAR_TO]->(su:User)-[p:LIKES]->(s:Song)
-                        WHERE u = user and su = similarUser AND NOT (u)-[:LIKES]->(s)
+                        WHERE NOT (u)-[:LIKES]->(s) AND u.mongoId = $mongo_id
                         OPTIONAL MATCH (u)-[f:FRIEND_REQUEST {status: "accepted"}]->(su)
-                        WITH BetaStrength, s AS Song, u AS User, su as SimilarUser, p as Like, CASE when count(f)>0 then r.weight * 2 else r.weight end AS Weight
-                        RETURN Song, sum(0.8 * Weight * Like.value + 0.2 * BetaStrength * Like.value) AS Strength
+                        WITH s AS Song, u AS User, su as SimilarUser, p as Preference,
+                            CASE when count(f)>0 then r.weight * 2 else r.weight end AS Weight
+                        OPTIONAL MATCH (u:User)-[p:LIKES]->(s:Song)<-[p2:LIKES]-(su:User)
+                        WHERE su.mongoId <> u.mongoId AND p.value = p2.value AND u = User AND su = SimilarUser
+                        WITH User, Song, SimilarUser, count(p) AS Coherence, Weight, Preference
+                        OPTIONAL MATCH (u:User)-[pr:LIKES]->(s:Song)
+                        WHERE u = User
+                        WITH count(pr) AS numLikes1, Song, SimilarUser, User, Coherence, Weight, Preference
+                        OPTIONAL MATCH (u:User)-[pr:LIKES]->(s:Song)
+                        WHERE u = SimilarUser
+                        WITH count(pr) AS numLikes2, numLikes1, Song, SimilarUser, User, Coherence, Weight, Preference
+                        UNWIND [numLikes1,numLikes2] AS numLikes
+                        WITH User, SimilarUser, Song, Preference, CASE when min(numLikes) <> 0 then Coherence/(toFloat(min(numLikes))) else 0 end AS BetaStrength, Weight
+                        RETURN Song, sum($alpha * Weight * Preference.value + $beta * BetaStrength * Preference.value) AS Strength
                         ORDER BY Strength DESC
                         LIMIT 50
                         """;
