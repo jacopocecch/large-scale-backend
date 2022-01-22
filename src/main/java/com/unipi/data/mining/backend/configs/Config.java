@@ -1,6 +1,12 @@
 package com.unipi.data.mining.backend.configs;
 
+import com.unipi.data.mining.backend.dtos.CommentDto;
+import com.unipi.data.mining.backend.entities.mongodb.Comment;
+import org.bson.types.ObjectId;
+import org.modelmapper.AbstractConverter;
+import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeMap;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,6 +28,21 @@ public class Config {
 
         ModelMapper modelMapper = new ModelMapper();
         modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.LOOSE);
+        Converter<String, ObjectId> toObjectId = new AbstractConverter<>() {
+            protected ObjectId convert(String source) {
+                return source == null ? null : new ObjectId(source);
+            }
+        };
+
+        TypeMap<CommentDto, Comment> typeMap1 = modelMapper.createTypeMap(CommentDto.class, Comment.class);
+        typeMap1.addMappings(mapper -> {
+            mapper.using(toObjectId)
+                    .map(CommentDto::getUserId, Comment::setUserId);
+            mapper.using(toObjectId)
+                    .map(CommentDto::getSongId, Comment::setSongId);
+
+        });
+
         return modelMapper;
     }
 

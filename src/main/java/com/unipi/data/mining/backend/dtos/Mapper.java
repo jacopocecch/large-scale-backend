@@ -7,7 +7,11 @@ import com.unipi.data.mining.backend.entities.mongodb.MongoSong;
 import com.unipi.data.mining.backend.entities.mongodb.MongoUser;
 import com.unipi.data.mining.backend.entities.neo4j.Neo4jSong;
 import com.unipi.data.mining.backend.entities.neo4j.Neo4jUser;
+import org.bson.types.ObjectId;
+import org.modelmapper.AbstractConverter;
+import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeMap;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -107,18 +111,16 @@ public record Mapper(ModelMapper modelMapper) {
 
     public CommentDto commentToCommentDto(Comment comment) {
 
-        modelMapper.typeMap(Comment.class, CommentDto.class).addMapping(
+        return modelMapper.typeMap(Comment.class, CommentDto.class).addMappings(mapper -> mapper.map(
                 Comment::getId,
-                CommentDto::setIdSerializer
-        ).addMapping(
+                CommentDto::setIdSerializer)
+        ).addMappings(mapper -> mapper.map(
                 Comment::getSongId,
-                CommentDto::setSongIdSerializer
-        ).addMapping(
+                CommentDto::setSongIdSerializer)
+        ).addMappings(mapper -> mapper.map(
                 Comment::getUserId,
-                CommentDto::setUserIdSerializer
-        );
-
-        return modelMapper().map(comment, CommentDto.class);
+                CommentDto::setUserIdSerializer)
+        ).map(comment);
     }
 
     public List<CommentDto> commentsToCommentsDto(List<Comment> comments) {
@@ -128,16 +130,6 @@ public record Mapper(ModelMapper modelMapper) {
 
     public Comment commentDtoToComment(CommentDto commentDto) {
 
-        modelMapper.typeMap(CommentDto.class, Comment.class).addMapping(
-                CommentDto::getId,
-                Comment::setIdDeserializer
-        ).addMapping(
-                CommentDto::getSongId,
-                Comment::setSongIdDeserializer
-        ).addMapping(
-                CommentDto::getUserId,
-                Comment::setUserIdDeserializer
-        );
-        return modelMapper().map(commentDto, Comment.class);
+        return modelMapper.map(commentDto, Comment.class);
     }
 }

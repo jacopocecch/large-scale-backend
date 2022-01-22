@@ -531,34 +531,4 @@ public class Neo4jUserDao extends Neo4jDao{
             throw e;
         }
     }
-    /*
-:auto USING PERIODIC COMMIT 500
-LOAD CSV WITH HEADERS FROM 'file:///user.csv' AS row
-WITH row._id as mongoId, toInteger(row.cluster) as cluster, row.country as country, row.first_name as firstName, row.last_name as lastName, row.picture as picture
-CREATE (u:User {mongoId: mongoId, country : country, firstName : firstName, lastName : lastName, picture : picture, cluster: cluster})
-
-CREATE CONSTRAINT user_id FOR (n:User) REQUIRE n.mongoId IS NODE KEY
-
-
-:auto USING PERIODIC COMMIT 500
-LOAD CSV WITH HEADERS FROM 'file:///song.csv' AS row
-WITH row.mongoId as mongoId, row.name as name, row.album as album, row.artists as artists
-CREATE (s:Song {mongoId: mongoId, name : name, album : album, artists : artists})
-
-CREATE CONSTRAINT song_id FOR (n:Song) REQUIRE n.mongoId IS NODE KEY
-
-:auto USING PERIODIC COMMIT 500
-LOAD CSV FROM 'file:///likes.csv' AS row
-WITH row[0] as userId, row[1] as songId, toInteger(row[2]) as preference
-MATCH (u:User), (s:Song)
-WHERE u.mongoId = userId AND s.mongoId = songId
-CREATE (u)-[r:LIKES {value: preference}]->(s)
-
-:auto USING PERIODIC COMMIT 500
-LOAD CSV FROM 'file:///similarities.csv' AS row
-WITH row[0] as fromUserId, row[1] as toUserId, toFloat(row[2]) as weight
-MATCH (u:User), (n:User)
-WHERE u.mongoId = fromUserId AND n.mongoId = toUserId
-CREATE (u)-[r:SIMILAR_TO {weight: weight}]->(n)
-     */
 }

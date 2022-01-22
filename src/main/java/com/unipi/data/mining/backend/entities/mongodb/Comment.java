@@ -60,10 +60,6 @@ public class Comment {
         this.id = id;
     }
 
-    public void setIdDeserializer(String id) {
-        this.id = new ObjectId(id);
-    }
-
     public ObjectId getUserId() {
         return userId;
     }
@@ -72,20 +68,12 @@ public class Comment {
         this.userId = userId;
     }
 
-    public void setUserIdDeserializer(String userId) {
-        this.userId = new ObjectId(userId);
-    }
-
     public ObjectId getSongId() {
         return songId;
     }
 
     public void setSongId(ObjectId songId) {
         this.songId = songId;
-    }
-
-    public void setSongIdDeserializer(String songId) {
-        this.songId = new ObjectId(songId);
     }
 
     public String getText() {
