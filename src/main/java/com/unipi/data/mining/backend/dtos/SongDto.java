@@ -46,7 +46,6 @@ public class SongDto implements Serializable {
     private double valence;
     private int tempo;
     private int duration;
-    @Min(2)
     private int timeSignature;
     @Min(1950)
     private int year;
