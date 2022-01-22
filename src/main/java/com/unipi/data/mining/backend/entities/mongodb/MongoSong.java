@@ -39,11 +39,13 @@ public class MongoSong {
     private int timeSignature;
     private int year;
     private List<CommentSubset> comments;
+    private int cluster;
+    private List<Like> likes;
 
     public MongoSong() {
     }
 
-    public MongoSong(ObjectId id, String name, String album, Set<String> artists, int trackNumber, int discNumber, boolean explicit, int key, int mode, double danceability, double energy, double loudness, double speechiness, double acousticness, double instrumentalness, double liveness, double valence, int tempo, int duration, int timeSignature, int year, List<CommentSubset> comments) {
+    public MongoSong(ObjectId id, String name, String album, Set<String> artists, int trackNumber, int discNumber, boolean explicit, int key, int mode, double danceability, double energy, double loudness, double speechiness, double acousticness, double instrumentalness, double liveness, double valence, int tempo, int duration, int timeSignature, int year, List<CommentSubset> comments, int cluster, List<Like> likes) {
         this.id = id;
         this.name = name;
         this.album = album;
@@ -66,6 +68,8 @@ public class MongoSong {
         this.timeSignature = timeSignature;
         this.year = year;
         this.comments = comments;
+        this.cluster = cluster;
+        this.likes = likes;
     }
 
     public ObjectId getId() {
@@ -289,5 +293,21 @@ public class MongoSong {
 
     public void removeComment(CommentSubset comment){
         this.comments.remove(comment);
+    }
+
+    public int getCluster() {
+        return cluster;
+    }
+
+    public void setCluster(int cluster) {
+        this.cluster = cluster;
+    }
+
+    public List<Like> getLikes() {
+        return likes;
+    }
+
+    public void setLikes(List<Like> likes) {
+        this.likes = likes;
     }
 }

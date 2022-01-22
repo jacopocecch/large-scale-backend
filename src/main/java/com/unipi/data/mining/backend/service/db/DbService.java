@@ -2,11 +2,7 @@ package com.unipi.data.mining.backend.service.db;
 
 import com.unipi.data.mining.backend.data.Distance;
 import com.unipi.data.mining.backend.data.Survey;
-import com.unipi.data.mining.backend.entities.mongodb.Comment;
-import com.unipi.data.mining.backend.entities.mongodb.CommentSubset;
-import com.unipi.data.mining.backend.entities.mongodb.MongoSong;
-import com.unipi.data.mining.backend.entities.mongodb.MongoUser;
-import org.bson.types.ObjectId;
+import com.unipi.data.mining.backend.entities.mongodb.*;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -246,5 +242,25 @@ public class DbService extends EntityService{
         commentSubset.setCommentId(comment.getId());
         commentSubset.setDate(comment.getDate());
         return commentSubset;
+    }
+
+    public void setLikesMongoDb() {
+
+        List<MongoSong> mongoSongs = customSongRepository.findAllIds();
+
+        for (MongoSong song: mongoSongs) {
+
+            List<Like> likeList = new ArrayList<>();
+            int predominantCluster = 0;
+            int maxLikes = 0;
+
+            for (int i = 1; i < 6; i++) {
+
+                int likes = neo4jSongDao.getSongClusterLikes(song.getId().toString(), i, 1);
+                int unlikes = neo4jSongDao.getSongClusterLikes(song.getId().toString(), i, -1);
+                Like like = new Like(i, likes, unlikes);
+                likeList.add(like);
+            }
+        }
     }
 }
