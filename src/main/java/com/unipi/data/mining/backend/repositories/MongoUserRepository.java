@@ -25,7 +25,7 @@ public interface MongoUserRepository extends MongoRepository<MongoUser, ObjectId
     @Query(value="{}", fields = "{email: 1}")
     List<MongoUser> findEmails();
 
-    boolean existsByUsername(int username);
+    boolean existsByUsername(String username);
 
     boolean existsByEmail(String email);
 

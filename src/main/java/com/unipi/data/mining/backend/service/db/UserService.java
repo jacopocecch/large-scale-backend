@@ -57,7 +57,7 @@ public class UserService extends EntityService {
         mongoUser = mongoUserRepository.save(mongoUser);
         ObjectId objectId = mongoUser.getId();
 
-        Neo4jUser neo4jUser = new Neo4jUser(objectId.toString(), mongoUser.getFirstName(), mongoUser.getLastName(), mongoUser.getUsername(), mongoUser.getCountry(), mongoUser.getImage());
+        Neo4jUser neo4jUser = new Neo4jUser(objectId.toString(), mongoUser.getFirstName(), mongoUser.getLastName(), mongoUser.getCluster(), mongoUser.getCountry(), mongoUser.getImage());
 
         neo4jUserDao.createUser(neo4jUser);
 
