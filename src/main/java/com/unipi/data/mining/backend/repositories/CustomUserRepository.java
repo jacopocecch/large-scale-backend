@@ -1,6 +1,8 @@
 package com.unipi.data.mining.backend.repositories;
 
+import com.unipi.data.mining.backend.entities.mongodb.MongoSong;
 import com.unipi.data.mining.backend.entities.mongodb.MongoUser;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.BulkOperations;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -18,6 +20,16 @@ public class CustomUserRepository extends CustomRepository{
         Update update = new Update();
         update.set("email", email);
         mongoTemplate.updateFirst(query, update, MongoUser.class);
+    }
+
+    public List<MongoUser> getUsersByUsernameStartingWith(String username) {
+
+        Query query = new Query();
+        query.addCriteria(Criteria.where("username").regex("^" + username));
+        query.with(Sort.by(Sort.Direction.ASC, "username"));
+        query.fields().include("first_name").include("last_name").include("picture");
+        query.limit(10);
+        return mongoTemplate.find(query, MongoUser.class);
     }
 
     public void bulkUpdateEmail(List<MongoUser> users) {

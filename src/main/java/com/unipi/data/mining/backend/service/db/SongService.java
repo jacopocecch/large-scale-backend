@@ -57,9 +57,9 @@ public class SongService extends EntityService{
         return optionalNeo4jSong.get();
     }
 
-    public List<MongoSong> getSongsByName(String name) {
+    public List<MongoSong> searchSongsByName(String name) {
 
-        return customSongRepository.getSongsStartingWith(name);
+        return customSongRepository.getSongsStartingWithName(name);
     }
 
     public List<Neo4jSong> getRecommendedSongs(String id) {

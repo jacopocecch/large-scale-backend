@@ -39,7 +39,7 @@ public record Mapper(ModelMapper modelMapper) {
         return modelMapper.map(survey, SurveyDto.class);
     }
 
-    public InterfaceUserDto neo4jUserToNeo4jUserDto(Neo4jUser neo4jUser) {
+    public InterfaceUserDto neo4jUserToInterfaceUserDto(Neo4jUser neo4jUser) {
 
         modelMapper.typeMap(Neo4jUser.class, InterfaceUserDto.class).addMapping(
                 Neo4jUser::getMongoId,
@@ -49,9 +49,9 @@ public record Mapper(ModelMapper modelMapper) {
         return modelMapper.map(neo4jUser, InterfaceUserDto.class);
     }
 
-    public List<InterfaceUserDto> neo4jUsersToNeo4jUsersDto(List<Neo4jUser> neo4jUsers) {
+    public List<InterfaceUserDto> neo4jUsersToInterfaceUsersDto(List<Neo4jUser> neo4jUsers) {
 
-        return neo4jUsers.stream().map(this::neo4jUserToNeo4jUserDto).toList();
+        return neo4jUsers.stream().map(this::neo4jUserToInterfaceUserDto).toList();
     }
 
     public SongDto mongoSongToSongDto(MongoSong song) {
@@ -69,7 +69,7 @@ public record Mapper(ModelMapper modelMapper) {
         return modelMapper.map(songDto, MongoSong.class);
     }
 
-    public InterfaceSongDto neo4jSongToNeo4jSongDto(Neo4jSong neo4jSong) {
+    public InterfaceSongDto neo4jSongToInterfaceSongDto(Neo4jSong neo4jSong) {
 
         modelMapper.typeMap(Neo4jSong.class, InterfaceSongDto.class).addMapping(
                 Neo4jSong::getMongoId,
@@ -79,8 +79,28 @@ public record Mapper(ModelMapper modelMapper) {
         return modelMapper.map(neo4jSong, InterfaceSongDto.class);
     }
 
-    public List<InterfaceSongDto> neo4jSongsToNeo4jSongsDto(List<Neo4jSong> neo4jSongs) {
+    public List<InterfaceSongDto> neo4jSongsToInterfaceSongsDto(List<Neo4jSong> neo4jSongs) {
 
-        return neo4jSongs.stream().map(this::neo4jSongToNeo4jSongDto).toList();
+        return neo4jSongs.stream().map(this::neo4jSongToInterfaceSongDto).toList();
+    }
+
+    public InterfaceUserDto mongoUserToInterfaceUserDto(MongoUser mongoUser) {
+
+        return modelMapper().map(mongoUser, InterfaceUserDto.class);
+    }
+
+    public List<InterfaceUserDto> mongoUsersToInterfaceUsersDto(List<MongoUser> mongoUsers) {
+
+        return mongoUsers.stream().map(this::mongoUserToInterfaceUserDto).toList();
+    }
+
+    public InterfaceSongDto mongoSongToInterfaceSongDto(MongoSong song) {
+
+        return modelMapper().map(song, InterfaceSongDto.class);
+    }
+
+    public List<InterfaceSongDto> mongoSongsToInterfaceSongsDto(List<MongoSong> songs) {
+
+        return songs.stream().map(this::mongoSongToInterfaceSongDto).toList();
     }
 }

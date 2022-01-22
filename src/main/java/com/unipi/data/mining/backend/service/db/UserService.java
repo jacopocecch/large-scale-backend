@@ -416,4 +416,9 @@ public class UserService extends EntityService {
 
         neo4jUserDao.quarantineUser(id);
     }
+
+    public List<MongoUser> searchUsersByUsername(String username) {
+
+        return customUserRepository.getUsersByUsernameStartingWith(username);
+    }
 }
