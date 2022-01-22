@@ -7,7 +7,6 @@ import org.springframework.data.mongodb.core.mapping.MongoId;
 
 import java.time.LocalDate;
 import java.util.Objects;
-import java.util.Set;
 
 @Document("user")
 public class MongoUser {
@@ -22,7 +21,7 @@ public class MongoUser {
     private LocalDate dateOfBirth;
     private String gender;
     private String country;
-    private String username;
+    private int username;
     private String phone;
     private String email;
     private String password;
@@ -42,7 +41,7 @@ public class MongoUser {
     public MongoUser() {
     }
 
-    public MongoUser(ObjectId id, String firstName, String lastName, LocalDate dateOfBirth, String gender, String country, String username, String phone, String email, String password, LocalDate registrationDate, String image, double extraversion, double agreeableness, double conscientiousness, double neuroticism, double openness, double timeSpent, int cluster) {
+    public MongoUser(ObjectId id, String firstName, String lastName, LocalDate dateOfBirth, String gender, String country, int username, String phone, String email, String password, LocalDate registrationDate, String image, double extraversion, double agreeableness, double conscientiousness, double neuroticism, double openness, double timeSpent, int cluster) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -112,11 +111,11 @@ public class MongoUser {
         this.country = country;
     }
 
-    public String getUsername() {
+    public int getUsername() {
         return username;
     }
 
-    public void setUsername(String username) {
+    public void setUsername(int username) {
         this.username = username;
     }
 

@@ -56,7 +56,7 @@ public class Neo4jUserDao extends Neo4jDao{
 
             session.writeTransaction(transaction -> {
                 String query = """
-                        CREATE (u: User {mongoId: $mongo_id, firstName: $first_name, lastName: $last_name, username: $username, country: $country, picture: $image})""";
+                        CREATE (u: User {mongoId: $mongo_id, firstName: $first_name, lastName: $last_name, cluster: $cluster, country: $country, picture: $image})""";
 
                 Map<String, Object> params = setCreateUpdateParameters(user);
 
@@ -73,7 +73,7 @@ public class Neo4jUserDao extends Neo4jDao{
             session.writeTransaction(transaction -> {
                 String query = """
                         MATCH (u: User {mongoId: $mongo_id})
-                        SET u.firstName: $first_name, u.lastName: $last_name, u.username: $username, u.country = $country, u.picture = $image
+                        SET u.firstName: $first_name, u.lastName: $last_name, u.cluster: $cluster, u.country = $country, u.picture = $image
                         RETURN u""";
 
                 Map<String, Object> params = setCreateUpdateParameters(user);
@@ -452,7 +452,7 @@ public class Neo4jUserDao extends Neo4jDao{
         params.put("mongo_id", user.getMongoId());
         params.put("first_name", user.getFirstName());
         params.put("last_name", user.getLastName());
-        params.put("username", user.getUsername());
+        params.put("cluster", user.getCluster());
         params.put("country", user.getCountry());
         params.put("image", user.getImage());
         return params;
@@ -515,8 +515,8 @@ public class Neo4jUserDao extends Neo4jDao{
     /*
 :auto USING PERIODIC COMMIT 500
 LOAD CSV WITH HEADERS FROM 'file:///user.csv' AS row
-WITH row._id as mongoId, row.country as country, row.first_name as firstName, row.last_name as lastName, row.username as username, row.picture as picture
-CREATE (u:User {mongoId: mongoId, country : country, firstName : firstName, lastName : lastName, username: username, picture : picture})
+WITH row._id as mongoId, toInteger(row.cluster) as cluster, row.country as country, row.first_name as firstName, row.last_name as lastName, row.picture as picture
+CREATE (u:User {mongoId: mongoId, country : country, firstName : firstName, lastName : lastName, picture : picture, cluster: cluster})
 
 CREATE CONSTRAINT user_id FOR (n:User) REQUIRE n.mongoId IS NODE KEY
 
@@ -540,7 +540,6 @@ LOAD CSV FROM 'file:///similarities.csv' AS row
 WITH row[0] as fromUserId, row[1] as toUserId, toFloat(row[2]) as weight
 MATCH (u:User), (n:User)
 WHERE u.mongoId = fromUserId AND n.mongoId = toUserId
-MERGE (u)-[r:SIMILAR_TO]-(n
-ON CREATE SET r.weight = weight
+CREATE (u)-[r:SIMILAR_TO {weight: weight}]->(n)
      */
 }

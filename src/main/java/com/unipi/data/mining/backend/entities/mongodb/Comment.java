@@ -5,6 +5,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.data.mongodb.core.mapping.MongoId;
 
+import java.time.LocalDate;
 import java.util.Objects;
 
 @Document("comment")
@@ -20,6 +21,7 @@ public class Comment {
     private String name;
     private String surname;
     private String text;
+    private LocalDate date;
 
     public Comment() {
     }
@@ -40,13 +42,14 @@ public class Comment {
         this.surname = surname;
     }
 
-    public Comment(ObjectId id, ObjectId userId, ObjectId songId, String name, String surname, String text) {
+    public Comment(ObjectId id, ObjectId userId, ObjectId songId, String name, String surname, String text, LocalDate date) {
         this.id = id;
         this.userId = userId;
         this.songId = songId;
         this.name = name;
         this.surname = surname;
         this.text = text;
+        this.date = date;
     }
 
     public ObjectId getId() {
@@ -102,5 +105,13 @@ public class Comment {
     @Override
     public int hashCode() {
         return Objects.hash(id, userId, songId);
+    }
+
+    public LocalDate getDate() {
+        return date;
+    }
+
+    public void setDate(LocalDate date) {
+        this.date = date;
     }
 }

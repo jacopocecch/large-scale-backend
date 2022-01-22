@@ -10,7 +10,7 @@ public class Neo4jUser {
     private String mongoId;
     private String firstName;
     private String lastName;
-    private String username;
+    private int cluster;
     private String country;
     private String image;
     private FriendRequest friendRequest;
@@ -18,11 +18,11 @@ public class Neo4jUser {
     public Neo4jUser() {
     }
 
-    public Neo4jUser(String mongoId, String firstName, String lastName, String username, String country, String image) {
+    public Neo4jUser(String mongoId, String firstName, String lastName, int cluster, String country, String image) {
         this.mongoId = mongoId;
         this.firstName = firstName;
         this.lastName = lastName;
-        this.username = username;
+        this.cluster = cluster;
         this.country = country;
         this.image = image;
     }
@@ -100,11 +100,11 @@ public class Neo4jUser {
         this.lastName = lastName;
     }
 
-    public String getUsername() {
-        return username;
+    public int getCluster() {
+        return cluster;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setCluster(int cluster) {
+        this.cluster = cluster;
     }
 }

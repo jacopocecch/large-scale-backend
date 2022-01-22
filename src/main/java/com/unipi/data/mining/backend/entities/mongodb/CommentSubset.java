@@ -4,6 +4,7 @@ import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
+import java.time.LocalDate;
 import java.util.Objects;
 
 @Document
@@ -16,8 +17,18 @@ public class CommentSubset {
     private String name;
     private String surname;
     private String text;
+    private LocalDate date;
 
     public CommentSubset() {
+    }
+
+    public CommentSubset(ObjectId commentId, ObjectId userId, String name, String surname, String text, LocalDate date) {
+        this.commentId = commentId;
+        this.userId = userId;
+        this.name = name;
+        this.surname = surname;
+        this.text = text;
+        this.date = date;
     }
 
     public String getName() {
@@ -79,5 +90,13 @@ public class CommentSubset {
     @Override
     public int hashCode() {
         return Objects.hash(commentId, userId, text);
+    }
+
+    public LocalDate getDate() {
+        return date;
+    }
+
+    public void setDate(LocalDate date) {
+        this.date = date;
     }
 }

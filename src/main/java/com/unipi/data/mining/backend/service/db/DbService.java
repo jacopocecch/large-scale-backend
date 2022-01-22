@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+import java.time.LocalDate;
 import java.util.*;
 
 @Service
@@ -210,13 +211,14 @@ public class DbService extends EntityService{
                 toBeCreated.add(createComment(user, text, song));
             }
             List<Comment> commentList = customCommentRepository.bulkInsertComments(toBeCreated);
-            commentList.sort(Comparator.comparing(Comment::getId));
+            song.setComments(new HashSet<>());
 
             for (int i = 0; i < 10; i++) {
                 song.addComment(createCommentSubset(commentList.get(i)));
             }
 
             toBeUpdated.add(song);
+            toBeCreated.clear();
         }
 
         customSongRepository.bulkUpdateComments(toBeUpdated);
@@ -230,6 +232,7 @@ public class DbService extends EntityService{
         comment.setUserId(user.getId());
         comment.setSongId(song.getId());
         comment.setText(text);
+        comment.setDate(LocalDate.now());
         return comment;
     }
 
@@ -241,6 +244,7 @@ public class DbService extends EntityService{
         commentSubset.setUserId(comment.getUserId());
         commentSubset.setText(comment.getText());
         commentSubset.setCommentId(comment.getId());
+        commentSubset.setDate(comment.getDate());
         return commentSubset;
     }
 }
