@@ -1,21 +1,38 @@
 package com.unipi.data.mining.backend.dtos;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.deser.std.FromStringDeserializer;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import org.bson.types.ObjectId;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
 public class CommentDto implements Serializable {
 
     @JsonSerialize(using = ToStringSerializer.class)
+    @JsonDeserialize(using = FromStringDeserializer.class)
     private ObjectId id;
+    @NotNull
+    @NotBlank
+    @JsonDeserialize(using = FromStringDeserializer.class)
     @JsonSerialize(using = ToStringSerializer.class)
     private ObjectId userId;
+    @NotNull
+    @NotBlank
     private String name;
+    @NotNull
+    @NotBlank
     private String surname;
+    @NotNull
+    @NotBlank
+    @JsonDeserialize(using = FromStringDeserializer.class)
     @JsonSerialize(using = ToStringSerializer.class)
     private ObjectId songId;
+    @NotNull
+    @NotBlank
     private String text;
 
     public CommentDto() {

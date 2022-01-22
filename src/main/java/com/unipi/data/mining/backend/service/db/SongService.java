@@ -1,6 +1,9 @@
 package com.unipi.data.mining.backend.service.db;
 
+import com.unipi.data.mining.backend.entities.mongodb.Comment;
+import com.unipi.data.mining.backend.entities.mongodb.CommentSubset;
 import com.unipi.data.mining.backend.entities.mongodb.MongoSong;
+import com.unipi.data.mining.backend.entities.mongodb.MongoUser;
 import com.unipi.data.mining.backend.entities.neo4j.Neo4jSong;
 import com.unipi.data.mining.backend.entities.neo4j.Neo4jUser;
 import com.unipi.data.mining.backend.service.exceptions.DbException;
@@ -8,6 +11,7 @@ import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.*;
 
 @Service
@@ -28,11 +32,15 @@ public class SongService extends EntityService{
     @Transactional
     public void deleteSongById(String id) {
 
-        if (customSongRepository.deleteSongById(new ObjectId(id))) throw new DbException("Unable to delete mongodb user of id " + id);
+        ObjectId objectId = new ObjectId(id);
+
+        if (customSongRepository.deleteSongById(objectId)) throw new DbException("Unable to delete mongodb user of id " + id);
 
         neo4jSongDao.deleteByMongoId(id);
 
         if (neo4jSongDao.getByMongoId(id).isPresent()) throw new DbException("Unable to delete neo4j song of id " + id);
+
+        customCommentRepository.deleteSongComments(objectId);
     }
 
     public MongoSong createSong(MongoSong mongoSong) {
@@ -74,4 +82,49 @@ public class SongService extends EntityService{
 
         neo4jSongDao.updateLikeRelationship(fromId, toId, like);
     }
+
+    public List<Comment> getSongComments(String id) {
+
+        return customCommentRepository.getSongComments(new ObjectId(id));
+    }
+
+    public Comment commentSong(String songId, Comment comment) {
+
+        Optional<MongoUser> mongoUser = mongoUserRepository.findById(comment.getUserId());
+
+        if (mongoUser.isEmpty()) {
+            throw new DbException("No User found with id " + comment.getUserId().toString());
+        }
+
+        MongoSong song = getMongoSongById(songId);
+
+        Comment insertedComment = customCommentRepository.insertComment(comment);
+
+        ObjectId id = insertedComment.getId();
+
+        if (id == null) {
+            throw new DbException("Unable to create new comment");
+        }
+
+        List<CommentSubset> commentSubsets = song.getComments();
+        CommentSubset newComment = new CommentSubset(comment.getId(), comment.getUserId(), comment.getName(), comment.getSurname(), comment.getText(), LocalDate.now());
+
+        if (commentSubsets == null) {
+            commentSubsets = new ArrayList<>();
+        }
+        Collections.sort(commentSubsets);
+        commentSubsets.add(0, newComment);
+        if (commentSubsets.size() > 10){
+            commentSubsets.remove(commentSubsets.size() - 1);
+        }
+
+        song.setComments(commentSubsets);
+
+        if (customSongRepository.updateComments(song) == 0) {
+            throw new DbException("Unable to update song's comments");
+        }
+
+        return insertedComment;
+    }
+
 }

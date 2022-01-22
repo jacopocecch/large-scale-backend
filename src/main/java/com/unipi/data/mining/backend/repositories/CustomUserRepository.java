@@ -1,7 +1,7 @@
 package com.unipi.data.mining.backend.repositories;
 
-import com.unipi.data.mining.backend.entities.mongodb.MongoSong;
 import com.unipi.data.mining.backend.entities.mongodb.MongoUser;
+import org.bson.types.ObjectId;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.BulkOperations;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -14,14 +14,6 @@ import java.util.List;
 @Component
 public class CustomUserRepository extends CustomRepository{
 
-    public void updateEmail(MongoUser user, String email) {
-
-        Query query = new Query(Criteria.where("id").is(user.getId()));
-        Update update = new Update();
-        update.set("email", email);
-        mongoTemplate.updateFirst(query, update, MongoUser.class);
-    }
-
     public List<MongoUser> getUsersByUsernameStartingWith(String username) {
 
         Query query = new Query();
@@ -30,6 +22,36 @@ public class CustomUserRepository extends CustomRepository{
         query.fields().include("first_name").include("last_name").include("picture");
         query.limit(10);
         return mongoTemplate.find(query, MongoUser.class);
+    }
+
+    public MongoUser insertUser(MongoUser user) {
+
+        return mongoTemplate.insert(user);
+    }
+
+    public boolean deleteUser(ObjectId id) {
+
+        return mongoTemplate.remove(Query.query(Criteria.where("id").is(id))).wasAcknowledged();
+    }
+
+    public boolean existsByUsername(String username) {
+
+        return mongoTemplate.exists(Query.query(Criteria.where("username").is(username)), MongoUser.class);
+    }
+
+    public boolean existsByEmail(String email) {
+
+        return mongoTemplate.exists(Query.query(Criteria.where("email").is(email)), MongoUser.class);
+    }
+
+    // UTILITIES
+
+    public void updateEmail(MongoUser user, String email) {
+
+        Query query = new Query(Criteria.where("id").is(user.getId()));
+        Update update = new Update();
+        update.set("email", email);
+        mongoTemplate.updateFirst(query, update, MongoUser.class);
     }
 
     public void bulkUpdateEmail(List<MongoUser> users) {

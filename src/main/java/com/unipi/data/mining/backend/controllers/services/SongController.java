@@ -1,7 +1,9 @@
 package com.unipi.data.mining.backend.controllers.services;
 
+import com.unipi.data.mining.backend.dtos.CommentDto;
 import com.unipi.data.mining.backend.dtos.InterfaceSongDto;
 import com.unipi.data.mining.backend.dtos.SongDto;
+import com.unipi.data.mining.backend.entities.mongodb.Comment;
 import com.unipi.data.mining.backend.entities.mongodb.MongoSong;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -84,5 +86,25 @@ public class SongController extends ServiceController{
         songService.likeSong(fromUserId, toUserId, status);
 
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @GetMapping("{id}/comment")
+    ResponseEntity<List<CommentDto>> getSongComments(@PathVariable("id") String id) {
+
+        return new ResponseEntity<>(
+                mapper.commentsToCommentsDto(songService.getSongComments(id)),
+                HttpStatus.OK
+        );
+    }
+
+    @PostMapping("{id}/comment")
+    ResponseEntity<CommentDto> commentSong(@PathVariable("id") String id, @Valid @RequestBody CommentDto commentDto) {
+
+        Comment comment = mapper.commentDtoToComment(commentDto);
+
+        return new ResponseEntity<>(
+                mapper.commentToCommentDto(songService.commentSong(id, comment)),
+                HttpStatus.OK
+        );
     }
 }

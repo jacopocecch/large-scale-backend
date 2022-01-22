@@ -1,6 +1,7 @@
 package com.unipi.data.mining.backend.entities.neo4j;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Objects;
 
@@ -12,6 +13,7 @@ public class Neo4jUser {
     private String lastName;
     private int cluster;
     private String country;
+    @JsonProperty("picture")
     private String image;
     private FriendRequest friendRequest;
 

@@ -2,6 +2,7 @@ package com.unipi.data.mining.backend.dtos;
 
 import com.unipi.data.mining.backend.data.Login;
 import com.unipi.data.mining.backend.data.Survey;
+import com.unipi.data.mining.backend.entities.mongodb.Comment;
 import com.unipi.data.mining.backend.entities.mongodb.MongoSong;
 import com.unipi.data.mining.backend.entities.mongodb.MongoUser;
 import com.unipi.data.mining.backend.entities.neo4j.Neo4jSong;
@@ -102,5 +103,20 @@ public record Mapper(ModelMapper modelMapper) {
     public List<InterfaceSongDto> mongoSongsToInterfaceSongsDto(List<MongoSong> songs) {
 
         return songs.stream().map(this::mongoSongToInterfaceSongDto).toList();
+    }
+
+    public CommentDto commentToCommentDto(Comment comment) {
+
+        return modelMapper().map(comment, CommentDto.class);
+    }
+
+    public List<CommentDto> commentsToCommentsDto(List<Comment> comments) {
+
+        return comments.stream().map(this::commentToCommentDto).toList();
+    }
+
+    public Comment commentDtoToComment(CommentDto commentDto) {
+
+        return modelMapper().map(commentDto, Comment.class);
     }
 }

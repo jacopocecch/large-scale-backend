@@ -8,7 +8,7 @@ import java.time.LocalDate;
 import java.util.Objects;
 
 @Document
-public class CommentSubset {
+public class CommentSubset implements Comparable<CommentSubset>{
 
     @Field("comment_id")
     private ObjectId commentId;
@@ -45,14 +45,6 @@ public class CommentSubset {
 
     public void setSurname(String surname) {
         this.surname = surname;
-    }
-
-    public CommentSubset(ObjectId commentId, ObjectId userId, String name, String surname, String text) {
-        this.commentId = commentId;
-        this.userId = userId;
-        this.name = name;
-        this.surname = surname;
-        this.text = text;
     }
 
     public ObjectId getCommentId() {
@@ -98,5 +90,10 @@ public class CommentSubset {
 
     public void setDate(LocalDate date) {
         this.date = date;
+    }
+
+    @Override
+    public int compareTo(CommentSubset o) {
+        return getDate().compareTo(o.getDate());
     }
 }

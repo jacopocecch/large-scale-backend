@@ -211,7 +211,7 @@ public class DbService extends EntityService{
                 toBeCreated.add(createComment(user, text, song));
             }
             List<Comment> commentList = customCommentRepository.bulkInsertComments(toBeCreated);
-            song.setComments(new HashSet<>());
+            song.setComments(new ArrayList<>());
 
             for (int i = 0; i < 10; i++) {
                 song.addComment(createCommentSubset(commentList.get(i)));

@@ -210,4 +210,12 @@ public class UserController extends ServiceController {
                 HttpStatus.OK
         );
     }
+
+    @PutMapping("{id}/quarantine")
+    ResponseEntity<Object> quarantineUser(@PathVariable("id") String id) {
+
+        userService.quarantineUser(id);
+
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
  }

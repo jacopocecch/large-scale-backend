@@ -76,4 +76,11 @@ public class CustomSongRepository extends CustomRepository{
         System.out.println(bulkOperations.execute());
     }
 
+    public long updateComments(MongoSong song) {
+
+        Update update = new Update();
+        update.set("comments", song.getComments());
+        return mongoTemplate.updateFirst(Query.query(Criteria.where("id").is(song.getId())), update, MongoSong.class).getModifiedCount();
+    }
+
 }

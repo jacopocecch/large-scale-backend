@@ -6,6 +6,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.data.mongodb.core.mapping.MongoId;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -37,12 +38,12 @@ public class MongoSong {
     @Field("time_signature")
     private int timeSignature;
     private int year;
-    private Set<CommentSubset> comments;
+    private List<CommentSubset> comments;
 
     public MongoSong() {
     }
 
-    public MongoSong(ObjectId id, String name, String album, Set<String> artists, int trackNumber, int discNumber, boolean explicit, int key, int mode, double danceability, double energy, double loudness, double speechiness, double acousticness, double instrumentalness, double liveness, double valence, int tempo, int duration, int timeSignature, int year, Set<CommentSubset> comments) {
+    public MongoSong(ObjectId id, String name, String album, Set<String> artists, int trackNumber, int discNumber, boolean explicit, int key, int mode, double danceability, double energy, double loudness, double speechiness, double acousticness, double instrumentalness, double liveness, double valence, int tempo, int duration, int timeSignature, int year, List<CommentSubset> comments) {
         this.id = id;
         this.name = name;
         this.album = album;
@@ -274,11 +275,11 @@ public class MongoSong {
         this.album = album;
     }
 
-    public Set<CommentSubset> getComments() {
+    public List<CommentSubset> getComments() {
         return comments;
     }
 
-    public void setComments(Set<CommentSubset> comments) {
+    public void setComments(List<CommentSubset> comments) {
         this.comments = comments;
     }
 

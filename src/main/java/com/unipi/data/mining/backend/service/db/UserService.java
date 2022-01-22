@@ -34,30 +34,31 @@ public class UserService extends EntityService {
     @Transactional
     public void deleteUserById(String id) {
 
-        mongoUserRepository.deleteById(new ObjectId(id));
+        ObjectId objectId = new ObjectId(id);
 
-        if (mongoUserRepository.existsById(new ObjectId(id))) throw new RuntimeException("Unable to delete mongodb user of id " + id);
+        if (!customUserRepository.deleteUser(objectId)) throw new RuntimeException("Unable to delete mongodb user of id " + id);
+
+        customCommentRepository.deleteUserComments(objectId);
 
         neo4jUserDao.deleteByMongoId(id);
 
         if (neo4jUserDao.getByMongoId(id).isPresent()) throw new RuntimeException("Unable to delete neo4j user of id " + id);
-
     }
 
     @Transactional
     public MongoUser registerUser(MongoUser mongoUser) {
 
-        if (mongoUserRepository.existsByUsername(mongoUser.getUsername())) throw new RegistrationException("Username already taken");
+        if (customUserRepository.existsByUsername(mongoUser.getUsername())) throw new RegistrationException("Username already taken");
 
-        if (mongoUserRepository.existsByEmail(mongoUser.getEmail())) throw new RegistrationException("This email already belongs to another user");
+        if (customUserRepository.existsByEmail(mongoUser.getEmail())) throw new RegistrationException("This email already belongs to another user");
 
-        //mongoUser.setPassword(passwordEncoder.encode(mongoUser.getPassword()));
+        mongoUser.setPassword(passwordEncoder.encode(mongoUser.getPassword()));
         mongoUser.setRegistrationDate(LocalDate.now());
 
-        mongoUser = mongoUserRepository.save(mongoUser);
-        ObjectId objectId = mongoUser.getId();
+        MongoUser insertedUser = customUserRepository.insertUser(mongoUser);
+        ObjectId objectId = insertedUser.getId();
 
-        Neo4jUser neo4jUser = new Neo4jUser(objectId.toString(), mongoUser.getFirstName(), mongoUser.getLastName(), mongoUser.getCluster(), mongoUser.getCountry(), mongoUser.getImage());
+        Neo4jUser neo4jUser = new Neo4jUser(objectId.toString(), insertedUser.getFirstName(), insertedUser.getLastName(), insertedUser.getCluster(), insertedUser.getCountry(), insertedUser.getImage());
 
         neo4jUserDao.createUser(neo4jUser);
 
@@ -94,7 +95,7 @@ public class UserService extends EntityService {
             throw new LoginException("No user found with email: " + login.getEmail());
         }
 
-        //if (!passwordEncoder.matches(login.getPassword(), mongoUser.getPassword())) throw new LoginException("Invalid password");
+        if (!passwordEncoder.matches(login.getPassword(), mongoUser.getPassword())) throw new LoginException("Invalid password");
 
         if (!Objects.equals(login.getPassword(), mongoUser.getPassword())) {
             throw new LoginException("Invalid password");

@@ -11,7 +11,6 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Past;
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.util.List;
 
 public class UserDto implements Serializable {
 
@@ -47,8 +46,9 @@ public class UserDto implements Serializable {
     private double openness;
     private double timeSpent;
     private int cluster;
+    private boolean admin;
 
-    public UserDto(ObjectId id, String firstName, String lastName, LocalDate dateOfBirth, String gender, String country, String username, String phone, String email, String password, LocalDate registrationDate, String image, double extraversion, double agreeableness, double conscientiousness, double neuroticism, double openness, double timeSpent, int cluster) {
+    public UserDto(ObjectId id, String firstName, String lastName, LocalDate dateOfBirth, String gender, String country, String username, String phone, String email, String password, LocalDate registrationDate, String image, double extraversion, double agreeableness, double conscientiousness, double neuroticism, double openness, double timeSpent, int cluster, boolean admin) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -68,6 +68,7 @@ public class UserDto implements Serializable {
         this.openness = openness;
         this.timeSpent = timeSpent;
         this.cluster = cluster;
+        this.admin = admin;
     }
 
     public UserDto(){
@@ -224,5 +225,13 @@ public class UserDto implements Serializable {
 
     public void setCluster(int cluster) {
         this.cluster = cluster;
+    }
+
+    public boolean isAdmin() {
+        return admin;
+    }
+
+    public void setAdmin(boolean admin) {
+        this.admin = admin;
     }
 }

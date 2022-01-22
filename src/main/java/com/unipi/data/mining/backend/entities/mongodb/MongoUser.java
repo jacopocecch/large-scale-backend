@@ -37,11 +37,12 @@ public class MongoUser {
     @Field("time_spent")
     private double timeSpent;
     private int cluster;
+    private boolean admin;
 
     public MongoUser() {
     }
 
-    public MongoUser(ObjectId id, String firstName, String lastName, LocalDate dateOfBirth, String gender, String country, String username, String phone, String email, String password, LocalDate registrationDate, String image, double extraversion, double agreeableness, double conscientiousness, double neuroticism, double openness, double timeSpent, int cluster) {
+    public MongoUser(ObjectId id, String firstName, String lastName, LocalDate dateOfBirth, String gender, String country, String username, String phone, String email, String password, LocalDate registrationDate, String image, double extraversion, double agreeableness, double conscientiousness, double neuroticism, double openness, double timeSpent, int cluster, boolean admin) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -61,6 +62,7 @@ public class MongoUser {
         this.openness = openness;
         this.timeSpent = timeSpent;
         this.cluster = cluster;
+        this.admin = admin;
     }
 
     public ObjectId getId() {
@@ -251,5 +253,13 @@ public class MongoUser {
                 ", timeSpent=" + timeSpent +
                 ", cluster=" + cluster +
                 '}';
+    }
+
+    public boolean getAdmin() {
+        return admin;
+    }
+
+    public void setAdmin(boolean admin) {
+        this.admin = admin;
     }
 }
