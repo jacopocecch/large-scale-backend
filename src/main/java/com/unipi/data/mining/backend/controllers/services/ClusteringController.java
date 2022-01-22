@@ -11,8 +11,6 @@ public class ClusteringController extends ServiceController{
 
     @EventListener(ContextRefreshedEvent.class)
     public void clustering(){
-        //dbService.generateSimilarities();
-        dbService.generateComments();
         clustering.startClustering();
     }
 }
