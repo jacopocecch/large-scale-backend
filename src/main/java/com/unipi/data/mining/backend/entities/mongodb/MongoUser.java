@@ -1,6 +1,7 @@
 package com.unipi.data.mining.backend.entities.mongodb;
 
 import org.bson.types.ObjectId;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.data.mongodb.core.mapping.MongoId;
@@ -37,6 +38,7 @@ public class MongoUser {
     @Field("time_spent")
     private double timeSpent;
     private int cluster;
+    @Transient
     private boolean admin;
 
     public MongoUser() {

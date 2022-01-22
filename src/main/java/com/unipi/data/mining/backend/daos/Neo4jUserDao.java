@@ -102,10 +102,11 @@ public class Neo4jUserDao extends Neo4jDao{
             session.writeTransaction(transaction -> {
                 String query = """
                         MATCH (u: User {mongoId: $mongo_id})
-                        SET u.cluster: $cluster
+                        SET u.cluster = $cluster
                         RETURN u""";
 
                 Map<String, Object> params = new HashMap<>();
+                params.put("mongo_id", user.getMongoId());
                 params.put("cluster", user.getCluster());
 
                 runTransaction(transaction, query, params);

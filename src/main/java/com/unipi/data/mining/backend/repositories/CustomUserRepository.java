@@ -31,7 +31,7 @@ public class CustomUserRepository extends CustomRepository{
 
     public boolean deleteUser(ObjectId id) {
 
-        return mongoTemplate.remove(Query.query(Criteria.where("id").is(id))).wasAcknowledged();
+        return mongoTemplate.remove(Query.query(Criteria.where("id").is(id)), MongoUser.class).wasAcknowledged();
     }
 
     public boolean existsByUsername(String username) {
