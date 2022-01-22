@@ -58,18 +58,20 @@ public class UserService extends EntityService {
         MongoUser insertedUser = customUserRepository.insertUser(mongoUser);
         ObjectId objectId = insertedUser.getId();
 
-        Neo4jUser neo4jUser = new Neo4jUser(objectId.toString(), insertedUser.getFirstName(), insertedUser.getLastName(), insertedUser.getCluster(), insertedUser.getCountry(), insertedUser.getImage());
+        Neo4jUser neo4jUser = new Neo4jUser(objectId.toString(), insertedUser.getFirstName(), insertedUser.getLastName(), insertedUser.getCountry(), insertedUser.getImage());
 
         neo4jUserDao.createUser(neo4jUser);
 
-        if (utils.areSurveyValuesCorrect(mongoUser)) {
+        if (utils.areSurveyValuesCorrect(insertedUser)) {
 
-            clustering.performClustering(mongoUser);
-            mongoUserRepository.save(mongoUser);
-            setNearestNeighbors(mongoUser);
+            clustering.performClustering(insertedUser);
+            customUserRepository.updateCluster(insertedUser);
+            neo4jUser.setCluster(insertedUser.getCluster());
+            neo4jUserDao.updateCluster(neo4jUser);
+            setNearestNeighbors(insertedUser);
         }
 
-        return mongoUser;
+        return insertedUser;
     }
 
     @Transactional
@@ -97,11 +99,7 @@ public class UserService extends EntityService {
 
         if (!passwordEncoder.matches(login.getPassword(), mongoUser.getPassword())) throw new LoginException("Invalid password");
 
-        if (!Objects.equals(login.getPassword(), mongoUser.getPassword())) {
-            throw new LoginException("Invalid password");
-        }
-
-        setNearestNeighbors(mongoUser);
+        //setNearestNeighbors(mongoUser);
 
         return mongoUser;
     }

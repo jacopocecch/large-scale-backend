@@ -56,9 +56,14 @@ public class Neo4jUserDao extends Neo4jDao{
 
             session.writeTransaction(transaction -> {
                 String query = """
-                        CREATE (u: User {mongoId: $mongo_id, firstName: $first_name, lastName: $last_name, cluster: $cluster, country: $country, picture: $image})""";
+                        CREATE (u: User {mongoId: $mongo_id, firstName: $first_name, lastName: $last_name, country: $country, picture: $image})""";
 
-                Map<String, Object> params = setCreateUpdateParameters(user);
+                Map<String, Object> params = new HashMap<>();
+                params.put("mongo_id", user.getMongoId());
+                params.put("first_name", user.getFirstName());
+                params.put("last_name", user.getLastName());
+                params.put("country", user.getCountry());
+                params.put("image", user.getImage());
 
                 runTransaction(transaction, query, params);
                 return null;
@@ -76,7 +81,32 @@ public class Neo4jUserDao extends Neo4jDao{
                         SET u.firstName: $first_name, u.lastName: $last_name, u.cluster: $cluster, u.country = $country, u.picture = $image
                         RETURN u""";
 
-                Map<String, Object> params = setCreateUpdateParameters(user);
+                Map<String, Object> params = new HashMap<>();
+                params.put("mongo_id", user.getMongoId());
+                params.put("first_name", user.getFirstName());
+                params.put("last_name", user.getLastName());
+                params.put("cluster", user.getCluster());
+                params.put("country", user.getCountry());
+                params.put("image", user.getImage());
+
+                runTransaction(transaction, query, params);
+                return null;
+            });
+        }
+    }
+
+    public void updateCluster(Neo4jUser user) {
+
+        try (Session session = driver.session()){
+
+            session.writeTransaction(transaction -> {
+                String query = """
+                        MATCH (u: User {mongoId: $mongo_id})
+                        SET u.cluster: $cluster
+                        RETURN u""";
+
+                Map<String, Object> params = new HashMap<>();
+                params.put("cluster", user.getCluster());
 
                 runTransaction(transaction, query, params);
                 return null;
@@ -444,18 +474,6 @@ public class Neo4jUserDao extends Neo4jDao{
             throw e;
         }
         return null;
-    }
-
-    private Map<String, Object> setCreateUpdateParameters(Neo4jUser user) {
-
-        Map<String, Object> params = new HashMap<>();
-        params.put("mongo_id", user.getMongoId());
-        params.put("first_name", user.getFirstName());
-        params.put("last_name", user.getLastName());
-        params.put("cluster", user.getCluster());
-        params.put("country", user.getCountry());
-        params.put("image", user.getImage());
-        return params;
     }
 
     private void runTransaction(Transaction transaction, String query, Map<String, Object> params) {

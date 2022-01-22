@@ -12,14 +12,10 @@ import java.io.Serializable;
 
 public class CommentDto implements Serializable {
 
-    @JsonSerialize(using = ToStringSerializer.class)
-    @JsonDeserialize(using = FromStringDeserializer.class)
-    private ObjectId id;
+    private String id;
     @NotNull
     @NotBlank
-    @JsonDeserialize(using = FromStringDeserializer.class)
-    @JsonSerialize(using = ToStringSerializer.class)
-    private ObjectId userId;
+    private String userId;
     @NotNull
     @NotBlank
     private String name;
@@ -28,9 +24,7 @@ public class CommentDto implements Serializable {
     private String surname;
     @NotNull
     @NotBlank
-    @JsonDeserialize(using = FromStringDeserializer.class)
-    @JsonSerialize(using = ToStringSerializer.class)
-    private ObjectId songId;
+    private String songId;
     @NotNull
     @NotBlank
     private String text;
@@ -38,7 +32,7 @@ public class CommentDto implements Serializable {
     public CommentDto() {
     }
 
-    public CommentDto(ObjectId id, ObjectId userId, String name, String surname, ObjectId songId, String text) {
+    public CommentDto(String id, String userId, String name, String surname, String songId, String text) {
         this.id = id;
         this.userId = userId;
         this.name = name;
@@ -47,28 +41,40 @@ public class CommentDto implements Serializable {
         this.text = text;
     }
 
-    public ObjectId getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(ObjectId id) {
+    public void setId(String id) {
         this.id = id;
     }
 
-    public ObjectId getUserId() {
+    public void setIdSerializer(ObjectId id) {
+        this.id = id.toString();
+    }
+
+    public String getUserId() {
         return userId;
     }
 
-    public void setUserId(ObjectId userId) {
+    public void setUserId(String userId) {
         this.userId = userId;
     }
 
-    public ObjectId getSongId() {
+    public void setUserIdSerializer(ObjectId userId) {
+        this.userId = userId.toString();
+    }
+
+    public String getSongId() {
         return songId;
     }
 
-    public void setSongId(ObjectId songId) {
+    public void setSongId(String songId) {
         this.songId = songId;
+    }
+
+    public void setSongIdSerializer(ObjectId songId) {
+        this.songId = songId.toString();
     }
 
     public String getText() {

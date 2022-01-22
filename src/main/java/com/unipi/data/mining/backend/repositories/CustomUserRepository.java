@@ -65,12 +65,12 @@ public class CustomUserRepository extends CustomRepository{
         System.out.println(bulkOperations.execute());
     }
 
-    public void updateCluster(MongoUser user)   {
+    public boolean updateCluster(MongoUser user)   {
 
         Query query = new Query(Criteria.where("id").is(user.getId()));
         Update update = new Update();
         update.set("cluster", user.getCluster());
-        mongoTemplate.updateFirst(query, update, MongoUser.class);
+        return mongoTemplate.updateFirst(query, update, MongoUser.class).wasAcknowledged();
     }
 
     public void bulkUpdateCluster(List<MongoUser> users) {

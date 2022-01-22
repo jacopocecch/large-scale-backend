@@ -107,6 +107,17 @@ public record Mapper(ModelMapper modelMapper) {
 
     public CommentDto commentToCommentDto(Comment comment) {
 
+        modelMapper.typeMap(Comment.class, CommentDto.class).addMapping(
+                Comment::getId,
+                CommentDto::setIdSerializer
+        ).addMapping(
+                Comment::getSongId,
+                CommentDto::setSongIdSerializer
+        ).addMapping(
+                Comment::getUserId,
+                CommentDto::setUserIdSerializer
+        );
+
         return modelMapper().map(comment, CommentDto.class);
     }
 
@@ -117,6 +128,16 @@ public record Mapper(ModelMapper modelMapper) {
 
     public Comment commentDtoToComment(CommentDto commentDto) {
 
+        modelMapper.typeMap(CommentDto.class, Comment.class).addMapping(
+                CommentDto::getId,
+                Comment::setIdDeserializer
+        ).addMapping(
+                CommentDto::getSongId,
+                Comment::setSongIdDeserializer
+        ).addMapping(
+                CommentDto::getUserId,
+                Comment::setUserIdDeserializer
+        );
         return modelMapper().map(commentDto, Comment.class);
     }
 }

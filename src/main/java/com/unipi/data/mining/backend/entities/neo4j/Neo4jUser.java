@@ -29,6 +29,14 @@ public class Neo4jUser {
         this.image = image;
     }
 
+    public Neo4jUser(String mongoId, String firstName, String lastName, String country, String image) {
+        this.mongoId = mongoId;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.country = country;
+        this.image = image;
+    }
+
     public String getFirstName() {
         return firstName;
     }
