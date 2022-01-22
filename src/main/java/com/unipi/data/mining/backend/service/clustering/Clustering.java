@@ -52,7 +52,7 @@ public class Clustering {
             dataset.add(inst);
         }
         buildClusterer();
-        updateClusters(mongoUserMap);
+        //updateClusters(mongoUserMap);
     }
 
     private void buildClusterer() {
