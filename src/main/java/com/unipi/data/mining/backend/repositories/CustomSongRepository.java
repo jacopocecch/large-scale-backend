@@ -1,7 +1,6 @@
 package com.unipi.data.mining.backend.repositories;
 
 import com.unipi.data.mining.backend.entities.mongodb.MongoSong;
-import com.unipi.data.mining.backend.entities.mongodb.MongoUser;
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.BulkOperations;
@@ -48,11 +47,13 @@ public class CustomSongRepository extends CustomRepository{
         return mongoTemplate.remove(query, MongoSong.class).wasAcknowledged();
     }
 
-    public List<MongoSong> getSongsStartingWith(String name) {
+    public List<MongoSong> getSongsStartingWithName(String name) {
 
         Query query = new Query();
         query.addCriteria(Criteria.where("name").regex("^" + name));
         query.with(Sort.by(Sort.Direction.ASC, "name"));
+        query.fields().include("name").include("album").include("artists");
+        query.limit(10);
         return mongoTemplate.find(query, MongoSong.class);
     }
 

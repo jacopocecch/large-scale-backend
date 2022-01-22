@@ -50,21 +50,27 @@ public class SongController extends ServiceController{
     ResponseEntity<InterfaceSongDto> getNeo4jSong(@PathVariable("id") String id) {
 
         return new ResponseEntity<>(
-                mapper.neo4jSongToNeo4jSongDto(songService.getNeo4jSongByMongoId(id)),
+                mapper.neo4jSongToInterfaceSongDto(songService.getNeo4jSongByMongoId(id)),
                 HttpStatus.OK
         );
     }
 
-    /*@GetMapping("search/{name}")
-    ResponseEntity<Neo4>
+    @GetMapping("search/{name}")
+    ResponseEntity<List<InterfaceSongDto>> searchSongsByName(@PathVariable("name") String name) {
 
-     */
+        return new ResponseEntity<>(
+                mapper.mongoSongsToInterfaceSongsDto(songService.searchSongsByName(name)),
+                HttpStatus.OK
+        );
+    }
+
+
 
     @GetMapping("recommended/{id}")
     ResponseEntity<List<InterfaceSongDto>> getRecommendedSongs(@PathVariable("id") String id) {
 
         return new ResponseEntity<>(
-                mapper.neo4jSongsToNeo4jSongsDto(songService.getRecommendedSongs(id)),
+                mapper.neo4jSongsToInterfaceSongsDto(songService.getRecommendedSongs(id)),
                 HttpStatus.OK
         );
     }

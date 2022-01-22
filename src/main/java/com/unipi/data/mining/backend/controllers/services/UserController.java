@@ -91,7 +91,7 @@ public class UserController extends ServiceController {
     ResponseEntity<List<InterfaceUserDto>> getSimilarUsers(@PathVariable String id) {
 
         return new ResponseEntity<>(
-                mapper.neo4jUsersToNeo4jUsersDto(userService.getSimilarUsers(id)),
+                mapper.neo4jUsersToInterfaceUsersDto(userService.getSimilarUsers(id)),
                 HttpStatus.OK
         );
     }
@@ -100,7 +100,7 @@ public class UserController extends ServiceController {
     ResponseEntity<List<InterfaceUserDto>> getNearbySimilarUsers(@PathVariable String id) {
 
         return new ResponseEntity<>(
-                mapper.neo4jUsersToNeo4jUsersDto(userService.getNearbySimilarUsers(id)),
+                mapper.neo4jUsersToInterfaceUsersDto(userService.getNearbySimilarUsers(id)),
                 HttpStatus.OK
         );
     }
@@ -151,7 +151,7 @@ public class UserController extends ServiceController {
     ResponseEntity<List<InterfaceUserDto>> getIncomingFriendRequests(@PathVariable("id") String id) {
 
         return new ResponseEntity<>(
-                mapper.neo4jUsersToNeo4jUsersDto(userService.getIncomingFriendRequests(id)),
+                mapper.neo4jUsersToInterfaceUsersDto(userService.getIncomingFriendRequests(id)),
                 HttpStatus.OK
         );
     }
@@ -160,7 +160,7 @@ public class UserController extends ServiceController {
     ResponseEntity<List<InterfaceUserDto>> getFriends(@PathVariable("id") String id) {
 
         return new ResponseEntity<>(
-                mapper.neo4jUsersToNeo4jUsersDto(userService.getFriends(id)),
+                mapper.neo4jUsersToInterfaceUsersDto(userService.getFriends(id)),
                 HttpStatus.OK
         );
     }
@@ -197,7 +197,16 @@ public class UserController extends ServiceController {
     ResponseEntity<InterfaceUserDto> getNeo4jUser(@PathVariable("id") String id) {
 
         return new ResponseEntity<>(
-                mapper.neo4jUserToNeo4jUserDto(userService.getNeo4jUserByMongoId(id)),
+                mapper.neo4jUserToInterfaceUserDto(userService.getNeo4jUserByMongoId(id)),
+                HttpStatus.OK
+        );
+    }
+
+    @GetMapping("search/{username}")
+    ResponseEntity<List<InterfaceUserDto>> searchUsersByUsername(@PathVariable("username") String username) {
+
+        return new ResponseEntity<>(
+                mapper.mongoUsersToInterfaceUsersDto(userService.searchUsersByUsername(username)),
                 HttpStatus.OK
         );
     }
