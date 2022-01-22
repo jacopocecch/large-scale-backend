@@ -2,17 +2,17 @@ package com.unipi.data.mining.backend.dtos;
 
 import java.io.Serializable;
 
-public class Neo4jSongDto implements Serializable {
+public class InterfaceSongDto implements Serializable {
 
     private String id;
     private String name;
     private String artists;
     private String album;
 
-    public Neo4jSongDto() {
+    public InterfaceSongDto() {
     }
 
-    public Neo4jSongDto(String id, String name, String artists, String album) {
+    public InterfaceSongDto(String id, String name, String artists, String album) {
         this.id = id;
         this.name = name;
         this.artists = artists;

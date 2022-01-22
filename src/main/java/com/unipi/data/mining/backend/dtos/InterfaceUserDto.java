@@ -2,7 +2,7 @@ package com.unipi.data.mining.backend.dtos;
 
 import java.io.Serializable;
 
-public class Neo4jUserDto implements Serializable {
+public class InterfaceUserDto implements Serializable {
 
     private String id;
     private String firstName;
@@ -12,10 +12,10 @@ public class Neo4jUserDto implements Serializable {
     private String image;
     private FriendRequestDto friendRequest;
 
-    public Neo4jUserDto() {
+    public InterfaceUserDto() {
     }
 
-    public Neo4jUserDto(String id, String firstName, String lastName, int cluster, String country, String image, FriendRequestDto friendRequest) {
+    public InterfaceUserDto(String id, String firstName, String lastName, int cluster, String country, String image, FriendRequestDto friendRequest) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;

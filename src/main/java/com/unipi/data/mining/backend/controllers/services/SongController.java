@@ -1,11 +1,8 @@
 package com.unipi.data.mining.backend.controllers.services;
 
-import com.unipi.data.mining.backend.dtos.Neo4jSongDto;
-import com.unipi.data.mining.backend.dtos.Neo4jUserDto;
+import com.unipi.data.mining.backend.dtos.InterfaceSongDto;
 import com.unipi.data.mining.backend.dtos.SongDto;
-import com.unipi.data.mining.backend.dtos.UserDto;
 import com.unipi.data.mining.backend.entities.mongodb.MongoSong;
-import com.unipi.data.mining.backend.entities.mongodb.MongoUser;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,7 +47,7 @@ public class SongController extends ServiceController{
     }
 
     @GetMapping("neo4j/{id}")
-    ResponseEntity<Neo4jSongDto> getNeo4jSong(@PathVariable("id") String id) {
+    ResponseEntity<InterfaceSongDto> getNeo4jSong(@PathVariable("id") String id) {
 
         return new ResponseEntity<>(
                 mapper.neo4jSongToNeo4jSongDto(songService.getNeo4jSongByMongoId(id)),
@@ -64,7 +61,7 @@ public class SongController extends ServiceController{
      */
 
     @GetMapping("recommended/{id}")
-    ResponseEntity<List<Neo4jSongDto>> getRecommendedSongs(@PathVariable("id") String id) {
+    ResponseEntity<List<InterfaceSongDto>> getRecommendedSongs(@PathVariable("id") String id) {
 
         return new ResponseEntity<>(
                 mapper.neo4jSongsToNeo4jSongsDto(songService.getRecommendedSongs(id)),

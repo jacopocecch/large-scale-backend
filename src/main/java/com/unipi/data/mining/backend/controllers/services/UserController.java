@@ -88,7 +88,7 @@ public class UserController extends ServiceController {
     }
 
     @GetMapping("similarities/{id}")
-    ResponseEntity<List<Neo4jUserDto>> getSimilarUsers(@PathVariable String id) {
+    ResponseEntity<List<InterfaceUserDto>> getSimilarUsers(@PathVariable String id) {
 
         return new ResponseEntity<>(
                 mapper.neo4jUsersToNeo4jUsersDto(userService.getSimilarUsers(id)),
@@ -97,7 +97,7 @@ public class UserController extends ServiceController {
     }
 
     @GetMapping("similar_nearby/{id}")
-    ResponseEntity<List<Neo4jUserDto>> getNearbySimilarUsers(@PathVariable String id) {
+    ResponseEntity<List<InterfaceUserDto>> getNearbySimilarUsers(@PathVariable String id) {
 
         return new ResponseEntity<>(
                 mapper.neo4jUsersToNeo4jUsersDto(userService.getNearbySimilarUsers(id)),
@@ -148,7 +148,7 @@ public class UserController extends ServiceController {
     }
 
     @GetMapping("friend_requests/{id}")
-    ResponseEntity<List<Neo4jUserDto>> getIncomingFriendRequests(@PathVariable("id") String id) {
+    ResponseEntity<List<InterfaceUserDto>> getIncomingFriendRequests(@PathVariable("id") String id) {
 
         return new ResponseEntity<>(
                 mapper.neo4jUsersToNeo4jUsersDto(userService.getIncomingFriendRequests(id)),
@@ -157,7 +157,7 @@ public class UserController extends ServiceController {
     }
 
     @GetMapping("friends/{id}")
-    ResponseEntity<List<Neo4jUserDto>> getFriends(@PathVariable("id") String id) {
+    ResponseEntity<List<InterfaceUserDto>> getFriends(@PathVariable("id") String id) {
 
         return new ResponseEntity<>(
                 mapper.neo4jUsersToNeo4jUsersDto(userService.getFriends(id)),
@@ -194,7 +194,7 @@ public class UserController extends ServiceController {
     }
 
     @GetMapping("neo4j/{id}")
-    ResponseEntity<Neo4jUserDto> getNeo4jUser(@PathVariable("id") String id) {
+    ResponseEntity<InterfaceUserDto> getNeo4jUser(@PathVariable("id") String id) {
 
         return new ResponseEntity<>(
                 mapper.neo4jUserToNeo4jUserDto(userService.getNeo4jUserByMongoId(id)),

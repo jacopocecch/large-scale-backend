@@ -39,17 +39,17 @@ public record Mapper(ModelMapper modelMapper) {
         return modelMapper.map(survey, SurveyDto.class);
     }
 
-    public Neo4jUserDto neo4jUserToNeo4jUserDto(Neo4jUser neo4jUser) {
+    public InterfaceUserDto neo4jUserToNeo4jUserDto(Neo4jUser neo4jUser) {
 
-        modelMapper.typeMap(Neo4jUser.class, Neo4jUserDto.class).addMapping(
+        modelMapper.typeMap(Neo4jUser.class, InterfaceUserDto.class).addMapping(
                 Neo4jUser::getMongoId,
-                Neo4jUserDto::setId
+                InterfaceUserDto::setId
         );
 
-        return modelMapper.map(neo4jUser, Neo4jUserDto.class);
+        return modelMapper.map(neo4jUser, InterfaceUserDto.class);
     }
 
-    public List<Neo4jUserDto> neo4jUsersToNeo4jUsersDto(List<Neo4jUser> neo4jUsers) {
+    public List<InterfaceUserDto> neo4jUsersToNeo4jUsersDto(List<Neo4jUser> neo4jUsers) {
 
         return neo4jUsers.stream().map(this::neo4jUserToNeo4jUserDto).toList();
     }
@@ -69,17 +69,17 @@ public record Mapper(ModelMapper modelMapper) {
         return modelMapper.map(songDto, MongoSong.class);
     }
 
-    public Neo4jSongDto neo4jSongToNeo4jSongDto(Neo4jSong neo4jSong) {
+    public InterfaceSongDto neo4jSongToNeo4jSongDto(Neo4jSong neo4jSong) {
 
-        modelMapper.typeMap(Neo4jSong.class, Neo4jSongDto.class).addMapping(
+        modelMapper.typeMap(Neo4jSong.class, InterfaceSongDto.class).addMapping(
                 Neo4jSong::getMongoId,
-                Neo4jSongDto::setId
+                InterfaceSongDto::setId
         );
 
-        return modelMapper.map(neo4jSong, Neo4jSongDto.class);
+        return modelMapper.map(neo4jSong, InterfaceSongDto.class);
     }
 
-    public List<Neo4jSongDto> neo4jSongsToNeo4jSongsDto(List<Neo4jSong> neo4jSongs) {
+    public List<InterfaceSongDto> neo4jSongsToNeo4jSongsDto(List<Neo4jSong> neo4jSongs) {
 
         return neo4jSongs.stream().map(this::neo4jSongToNeo4jSongDto).toList();
     }
