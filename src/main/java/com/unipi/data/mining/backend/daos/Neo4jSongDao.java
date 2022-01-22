@@ -68,9 +68,10 @@ public class Neo4jSongDao extends Neo4jDao{
                         WITH count(pr) AS numLikes2, numLikes1, Song, SimilarUser, User, Coherence, Weight, Preference
                         UNWIND [numLikes1,numLikes2] AS numLikes
                         WITH User, SimilarUser, Song, Preference, CASE when min(numLikes) <> 0 then Coherence/(toFloat(min(numLikes))) else 0 end AS BetaStrength, Weight
-                        RETURN Song, sum($alpha * Weight * Preference.value + $beta * BetaStrength * Preference.value) AS Strength
+                        WITH Song, sum($alpha * Weight * Preference.value + $beta * BetaStrength * Preference.value) AS Strength
+                        RETURN Song
                         ORDER BY Strength DESC
-                        LIMIT 50
+                        LIMIT 15
                         """;
                 Map<String, Object> params = new HashMap<>();
                 params.put("mongo_id", id);
@@ -93,7 +94,7 @@ public class Neo4jSongDao extends Neo4jDao{
                         WHERE u.mongoId = $from_mongo_id
                         AND s.mongoId = $to_mongo_id
                         MERGE(u)-[r:LIKES]-(s)
-                        SET r.value = like""";
+                        SET r.value = $like""";
 
                 Map<String, Object> params = new HashMap<>();
                 params.put("from_mongo_id", fromId);
