@@ -125,6 +125,13 @@ public class CustomUserRepository extends CustomRepository{
         return mongoTemplate.find(query, MongoUser.class);
     }
 
+    public List<MongoUser> findAllClusters() {
+
+        Query query = new Query();
+        query.fields().include("cluster");
+        return mongoTemplate.find(query, MongoUser.class);
+    }
+
     public List<MongoUser> findToGenerateComments() {
 
         Query query = new Query();

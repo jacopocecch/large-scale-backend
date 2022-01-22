@@ -6,11 +6,10 @@ import com.unipi.data.mining.backend.entities.mongodb.*;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 public class DbService extends EntityService{
@@ -247,7 +246,57 @@ public class DbService extends EntityService{
     public void setLikesMongoDb() {
 
         List<MongoSong> mongoSongs = customSongRepository.findAllIds();
+        Map<String, MongoSong> mongoSongMap = new HashMap<>();
 
+        for (MongoSong song: mongoSongs) {
+            List<Like> likeList = new ArrayList<>();
+            for (int i = 1; i < 6; i++) {
+
+                Like like = new Like(i, 0, 0);
+                likeList.add(like);
+            }
+
+            song.setLikes(likeList);
+            mongoSongMap.put(song.getId().toString(), song);
+        }
+
+        Map<String, Integer> clusterMap = new HashMap<>();
+
+        List<MongoUser> mongoUsers = customUserRepository.findAllClusters();
+
+        for (MongoUser user: mongoUsers) {
+
+            clusterMap.put(user.getId().toString(), user.getCluster());
+        }
+
+        List<List<String>> records = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader("/Users/jacopo/IdeaProjects/large-scale-project/likes.csv"))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] values = line.split(",");
+                records.add(Arrays.asList(values));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        for (List<String> record: records) {
+
+            int cluster = clusterMap.get(record.get(0));
+            MongoSong song = mongoSongMap.get(record.get(1));
+            Like like = song.getLikes().get(cluster - 1);
+            if (Integer.parseInt(record.get(2)) == 1) {
+                like.setNumLikes(like.getNumLikes() + 1);
+            } else {
+                like.setNumUnlikes(like.getNumUnlikes() + 1);
+            }
+        }
+
+        int i = 0;
+
+
+
+        /*
         for (MongoSong song: mongoSongs) {
 
             List<Like> likeList = new ArrayList<>();
@@ -256,11 +305,35 @@ public class DbService extends EntityService{
 
             for (int i = 1; i < 6; i++) {
 
-                int likes = neo4jSongDao.getSongClusterLikes(song.getId().toString(), i, 1);
-                int unlikes = neo4jSongDao.getSongClusterLikes(song.getId().toString(), i, -1);
+                neo4jSongDao.getSongClusterLikes(song.getId().toString(), i, 1);
+                neo4jSongDao.getSongClusterLikes(song.getId().toString(), i, -1);
+                int totalLikes = likes - unlikes;
+                if (totalLikes > maxLikes) {
+                    predominantCluster = i;
+                    maxLikes = totalLikes;
+                }
                 Like like = new Like(i, likes, unlikes);
                 likeList.add(like);
             }
+
+            if (predominantCluster == 0) {
+                predominantCluster = ThreadLocalRandom.current().nextInt(1, 6);
+            }
+
+            song.setLikes(likeList);
+            song.setCluster(predominantCluster);
+
+            if (maxLikes > 0) {
+                int j = 0;
+            }
+
+            System.out.println(index);
+            index--;
         }
+
+        customSongRepository.bulkUpdateLikes(mongoSongs);
+
+         */
     }
+
 }

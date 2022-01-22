@@ -83,4 +83,16 @@ public class CustomSongRepository extends CustomRepository{
         return mongoTemplate.updateFirst(Query.query(Criteria.where("id").is(song.getId())), update, MongoSong.class).getModifiedCount();
     }
 
+    public void bulkUpdateLikes(List<MongoSong> songs) {
+
+        BulkOperations bulkOperations = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, MongoSong.class);
+        for (MongoSong song: songs) {
+            Update update = new Update();
+            update.set("likes", song.getLikes());
+            update.set("cluster", song.getCluster());
+            bulkOperations.updateOne(Query.query(Criteria.where("id").is(song.getId())), update);
+        }
+        System.out.println(bulkOperations.execute());
+    }
+
 }
