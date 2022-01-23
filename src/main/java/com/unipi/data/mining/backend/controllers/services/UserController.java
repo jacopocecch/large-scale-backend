@@ -1,9 +1,10 @@
 package com.unipi.data.mining.backend.controllers.services;
 
-import com.unipi.data.mining.backend.data.Country;
+import com.unipi.data.mining.backend.data.aggregations.Country;
 import com.unipi.data.mining.backend.data.Login;
 import com.unipi.data.mining.backend.dtos.*;
 import com.unipi.data.mining.backend.entities.mongodb.MongoUser;
+import org.bson.types.ObjectId;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,7 +24,7 @@ public class UserController extends ServiceController {
     ResponseEntity<UserDto> getById(@PathVariable("id") String id) {
 
         return new ResponseEntity<>(
-                mapper.mongoUserToUserDto(userService.getMongoUserById(id)),
+                mapper.mongoUserToUserDto(userService.getMongoUserById(new ObjectId(id))),
                 HttpStatus.OK
         );
     }
@@ -49,12 +50,13 @@ public class UserController extends ServiceController {
 
     @Transactional
     @PutMapping("update")
-    ResponseEntity<UserDto> updateUser(@Valid @RequestBody UserDto userDto) {
+    ResponseEntity<Object> updateUser(@Valid @RequestBody UserDto userDto) {
 
         MongoUser mongoUser = mapper.userDtoToMongoUser(userDto);
 
+        userService.updateUser(mongoUser);
+
         return new ResponseEntity<>(
-                mapper.mongoUserToUserDto(userService.updateUser(mongoUser)),
                 HttpStatus.OK
         );
     }

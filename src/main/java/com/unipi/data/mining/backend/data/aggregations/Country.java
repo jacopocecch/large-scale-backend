@@ -1,4 +1,4 @@
-package com.unipi.data.mining.backend.data;
+package com.unipi.data.mining.backend.data.aggregations;
 
 public class Country {
 

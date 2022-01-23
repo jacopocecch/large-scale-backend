@@ -1,11 +1,10 @@
 package com.unipi.data.mining.backend.repositories;
 
-import com.unipi.data.mining.backend.data.Country;
-import com.unipi.data.mining.backend.data.HighestVarianceCluster;
+import com.unipi.data.mining.backend.data.aggregations.Country;
+import com.unipi.data.mining.backend.data.aggregations.HighestVarianceCluster;
 import com.unipi.data.mining.backend.data.Survey;
 import com.unipi.data.mining.backend.entities.mongodb.MongoUser;
 import org.bson.types.ObjectId;
-import org.neo4j.cypherdsl.core.Match;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.BulkOperations;
 import org.springframework.data.mongodb.core.aggregation.*;
@@ -15,9 +14,25 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Map;
 
 @Component
 public class CustomUserRepository extends CustomRepository{
+
+    public MongoUser findById(ObjectId id) {
+
+        return mongoTemplate.findById(id, MongoUser.class);
+    }
+
+    public MongoUser findByEmail(String email) {
+
+        return mongoTemplate.findOne(Query.query(Criteria.where("email").is(email)), MongoUser.class);
+    }
+
+    public List<MongoUser> findAll() {
+
+        return mongoTemplate.findAll(MongoUser.class);
+    }
 
     public List<MongoUser> getUsersByUsernameStartingWith(String username) {
 
@@ -27,6 +42,18 @@ public class CustomUserRepository extends CustomRepository{
         query.fields().include("first_name").include("last_name").include("picture");
         query.limit(10);
         return mongoTemplate.find(query, MongoUser.class);
+    }
+
+    public boolean updateUserInfo(ObjectId id, Map<String, String> toBeUpdated) {
+
+        Update update = new Update();
+
+        for (Map.Entry<String, String> field: toBeUpdated.entrySet()) {
+
+            update.set(field.getKey(), field.getValue());
+        }
+
+        return mongoTemplate.updateFirst(Query.query(Criteria.where("id").is(id)), update, MongoUser.class).wasAcknowledged();
     }
 
     public MongoUser insertUser(MongoUser user) {
@@ -137,6 +164,35 @@ public class CustomUserRepository extends CustomRepository{
         AggregationResults<Survey> results = mongoTemplate.aggregate(aggregation, "user", Survey.class);
 
         return results.getUniqueMappedResult();
+    }
+
+    public List<MongoUser> findAllWithSurveyAndCluster() {
+
+        Query query = new Query();
+        query.fields().include("extraversion", "agreeableness", "conscientiousness", "neuroticism", "openness", "time_spent", "cluster");
+        return mongoTemplate.find(query, MongoUser.class);
+    }
+
+    public List<MongoUser> findByClusterWithSurvey(int cluster) {
+
+        Query query = new Query();
+        query.addCriteria(Criteria.where("cluster").is(cluster));
+        query.fields().include("extraversion", "agreeableness", "conscientiousness", "neuroticism", "openness", "time_spent");
+        return mongoTemplate.find(query, MongoUser.class);
+    }
+
+    public List<MongoUser> findAllWithEmail() {
+
+        Query query = new Query();
+        query.fields().include("email");
+        return mongoTemplate.find(query, MongoUser.class);
+    }
+
+    public List<MongoUser> findAllWithPassword() {
+
+        Query query = new Query();
+        query.fields().include("password");
+        return mongoTemplate.find(query, MongoUser.class);
     }
 
     // UTILITIES

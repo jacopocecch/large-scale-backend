@@ -1,5 +1,7 @@
 package com.unipi.data.mining.backend.service.db;
 
+import com.unipi.data.mining.backend.data.aggregations.Album;
+import com.unipi.data.mining.backend.data.aggregations.Id;
 import com.unipi.data.mining.backend.entities.mongodb.Comment;
 import com.unipi.data.mining.backend.entities.mongodb.CommentSubset;
 import com.unipi.data.mining.backend.entities.mongodb.MongoSong;
@@ -20,13 +22,13 @@ public class SongService extends EntityService{
 
     public MongoSong getMongoSongById(String id) {
 
-        Optional<MongoSong> mongoSong = mongoSongRepository.findById(new ObjectId(id));
+        MongoSong mongoSong = customSongRepository.findById(new ObjectId(id));
 
-        if (mongoSong.isEmpty()){
+        if (mongoSong == null){
             throw new DbException("No Song found with id " + id);
         }
 
-        return mongoSong.get();
+        return mongoSong;
     }
 
     @Transactional
@@ -45,7 +47,7 @@ public class SongService extends EntityService{
 
     public MongoSong createSong(MongoSong mongoSong) {
 
-        MongoSong song = mongoSongRepository.save(mongoSong);
+        MongoSong song = customSongRepository.createSong(mongoSong);
         ObjectId id = song.getId();
 
         Neo4jSong neo4jSong = new Neo4jSong(id.toString(), song.getName(), song.getArtists().stream().toList(), song.getAlbum());
@@ -90,9 +92,9 @@ public class SongService extends EntityService{
 
     public Comment commentSong(String songId, Comment comment) {
 
-        Optional<MongoUser> mongoUser = mongoUserRepository.findById(comment.getUserId());
+        MongoUser mongoUser = customUserRepository.findById(comment.getUserId());
 
-        if (mongoUser.isEmpty()) {
+        if (mongoUser == null) {
             throw new DbException("No User found with id " + comment.getUserId().toString());
         }
 
@@ -125,6 +127,16 @@ public class SongService extends EntityService{
         }
 
         return insertedComment;
+    }
+
+    public List<Album> getClusterKHighestRatedAlbums(int cluster, int k) {
+
+        return customSongRepository.getClusterKHighestRatedAlbums(cluster, k);
+    }
+
+    public Id getMostDanceableCluster() {
+
+        return customSongRepository.getMostDanceableCluster();
     }
 
 }

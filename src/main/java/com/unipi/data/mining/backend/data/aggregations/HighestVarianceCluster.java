@@ -1,17 +1,9 @@
-package com.unipi.data.mining.backend.data;
+package com.unipi.data.mining.backend.data.aggregations;
 
 public class HighestVarianceCluster {
 
     int id;
     double difference;
-    /*double differenceAGR;
-    double differenceCSN;
-    double differenceEXT;
-    double differenceEST;
-    double differenceOPN;
-    double differenceTS;
-
-     */
 
     public HighestVarianceCluster() {
     }

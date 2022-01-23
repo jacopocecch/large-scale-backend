@@ -1,6 +1,7 @@
 package com.unipi.data.mining.backend.daos;
 
 import com.unipi.data.mining.backend.data.Distance;
+import com.unipi.data.mining.backend.entities.mongodb.MongoUser;
 import com.unipi.data.mining.backend.entities.neo4j.FriendRequest;
 import com.unipi.data.mining.backend.entities.neo4j.Neo4jUser;
 import org.neo4j.driver.Record;
@@ -71,18 +72,18 @@ public class Neo4jUserDao extends Neo4jDao{
         }
     }
 
-    public void updateUser(Neo4jUser user) {
+    public void updateUser(MongoUser user) {
 
         try (Session session = driver.session()){
 
             session.writeTransaction(transaction -> {
                 String query = """
                         MATCH (u: User {mongoId: $mongo_id})
-                        SET u.firstName: $first_name, u.lastName: $last_name, u.cluster: $cluster, u.country = $country, u.picture = $image
+                        SET u.firstName = $first_name, u.lastName = $last_name, u.cluster = $cluster, u.country = $country, u.picture = $image
                         RETURN u""";
 
                 Map<String, Object> params = new HashMap<>();
-                params.put("mongo_id", user.getMongoId());
+                params.put("mongo_id", user.getId().toString());
                 params.put("first_name", user.getFirstName());
                 params.put("last_name", user.getLastName());
                 params.put("cluster", user.getCluster());

@@ -1,18 +1,34 @@
 package com.unipi.data.mining.backend.repositories;
 
+import com.unipi.data.mining.backend.data.aggregations.Album;
+import com.unipi.data.mining.backend.data.aggregations.Id;
 import com.unipi.data.mining.backend.entities.mongodb.MongoSong;
+import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.MongoExpression;
 import org.springframework.data.mongodb.core.BulkOperations;
+import org.springframework.data.mongodb.core.aggregation.*;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
+import scala.Int;
 
 import java.util.List;
 
 @Repository
 public class CustomSongRepository extends CustomRepository{
+
+    public MongoSong findById(ObjectId id) {
+
+        return mongoTemplate.findById(id, MongoSong.class);
+    }
+
+    public MongoSong createSong(MongoSong song) {
+
+        return mongoTemplate.insert(song);
+    }
 
     public List<MongoSong> findSongsSortBy(String field, Sort.Direction direction) {
 
@@ -21,6 +37,56 @@ public class CustomSongRepository extends CustomRepository{
         query.fields().include("id");
         query.limit(1000);
         return mongoTemplate.find(query, MongoSong.class);
+    }
+
+    public List<Album> getClusterKHighestRatedAlbums(int cluster, int k) {
+
+        MatchOperation matchCluster = Aggregation.match(Criteria.where("cluster").is(cluster));
+
+        UnwindOperation unwindLikes = Aggregation.unwind("likes");
+
+        ProjectionOperation projectResult = Aggregation.project("_id", "album", "likes")
+                .and("cluster").eq("$likes.cluster").as("result");
+
+        MatchOperation matchResult = Aggregation.match(Criteria.where("result").is(true));
+
+        ProjectionOperation projectSum = Aggregation.project("_id", "album")
+                .and("$likes.numLikes").minus("$likes.numUnlikes").as("totalLikes");
+
+        GroupOperation groupByAlbum = Aggregation.group("album")
+                .sum("totalLikes").as("strength");
+
+        SortOperation sortByStrength = Aggregation.sort(Sort.by(Sort.Direction.DESC, "strength"));
+
+        LimitOperation limit = Aggregation.limit(k);
+
+        Aggregation aggregation = Aggregation.newAggregation(matchCluster, unwindLikes, projectResult, matchResult, projectSum, groupByAlbum, sortByStrength, limit);
+
+        AggregationResults<Album> results = mongoTemplate.aggregate(aggregation, "song", Album.class);
+
+        return results.getMappedResults();
+    }
+
+    public Id getMostDanceableCluster() {
+
+        SortOperation sortByDanceability = Aggregation.sort(Sort.by(Sort.Direction.DESC, "danceability"));
+
+        LimitOperation limit = Aggregation.limit(500);
+
+        GroupOperation groupByCluster = Aggregation.group("cluster")
+                .count().as("strength");
+
+        SortOperation sortByStrength = Aggregation.sort(Sort.by(Sort.Direction.DESC, "strength"));
+
+        LimitOperation limitToOne = Aggregation.limit(1);
+
+        ProjectionOperation projectCluster = Aggregation.project("_id");
+
+        Aggregation aggregation = Aggregation.newAggregation(sortByDanceability, limit, groupByCluster, sortByStrength, limitToOne, projectCluster);
+
+        AggregationResults<Id> results = mongoTemplate.aggregate(aggregation, "song", Id.class);
+
+        return results.getUniqueMappedResult();
     }
 
     public List<MongoSong> findAllIds() {

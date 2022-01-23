@@ -2,7 +2,6 @@ package com.unipi.data.mining.backend.service.clustering;
 
 import com.unipi.data.mining.backend.entities.mongodb.MongoUser;
 import com.unipi.data.mining.backend.repositories.CustomUserRepository;
-import com.unipi.data.mining.backend.repositories.MongoUserRepository;
 import org.springframework.stereotype.Service;
 import weka.clusterers.FilteredClusterer;
 import weka.clusterers.SimpleKMeans;
@@ -16,8 +15,6 @@ import java.util.stream.Collectors;
 @Service
 public class Clustering {
 
-    private final MongoUserRepository mongoUserRepository;
-
     private CustomUserRepository customUserRepository;
 
     private final ArrayList<Attribute> attributes = new ArrayList<>();
@@ -26,7 +23,7 @@ public class Clustering {
     as attribute of the instance without considering it in the KMeans algorithm */
     private FilteredClusterer filteredClusterer;
 
-    public Clustering(MongoUserRepository mongoUserRepository, CustomUserRepository customUserRepository) {
+    public Clustering(CustomUserRepository customUserRepository) {
         this.customUserRepository = customUserRepository;
         attributes.add(new Attribute("id",(ArrayList<String>)null));
         attributes.add(new Attribute("neurotic"));
@@ -35,13 +32,12 @@ public class Clustering {
         attributes.add(new Attribute("extraversion"));
         attributes.add(new Attribute("conscientiousness"));
         attributes.add(new Attribute("timeSpent"));
-        this.mongoUserRepository = mongoUserRepository;
         this.customUserRepository = customUserRepository;
     }
 
     public void startClustering() {
         System.out.println("Initializing the KMeans Clustering Algorithm....");
-        List<MongoUser> mongoUsers = mongoUserRepository.findAllWithSurveyAndCluster();
+        List<MongoUser> mongoUsers = customUserRepository.findAllWithSurveyAndCluster();
         Map<String, MongoUser> mongoUserMap = mongoUsers.stream().collect(Collectors.toMap(mongoUser -> mongoUser.getId().toString(), Function.identity()));
         int numInstances = mongoUserMap.size();
         dataset = new Instances("PersonalityDataset", attributes, numInstances);

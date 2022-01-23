@@ -2,7 +2,6 @@ package com.unipi.data.mining.backend.service.db;
 
 import com.unipi.data.mining.backend.daos.Neo4jSongDao;
 import com.unipi.data.mining.backend.daos.Neo4jUserDao;
-import com.unipi.data.mining.backend.entities.neo4j.Neo4jSong;
 import com.unipi.data.mining.backend.repositories.*;
 import com.unipi.data.mining.backend.service.Utils;
 import com.unipi.data.mining.backend.service.clustering.Clustering;
@@ -12,11 +11,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 abstract class EntityService {
 
-    @Autowired
-    protected MongoUserRepository mongoUserRepository;
-
-    @Autowired
-    protected MongoSongRepository mongoSongRepository;
 
     @Autowired
     protected Neo4jUserDao neo4jUserDao;

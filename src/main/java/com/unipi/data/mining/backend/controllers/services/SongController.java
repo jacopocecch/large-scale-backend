@@ -1,5 +1,7 @@
 package com.unipi.data.mining.backend.controllers.services;
 
+import com.unipi.data.mining.backend.data.aggregations.Album;
+import com.unipi.data.mining.backend.data.aggregations.Id;
 import com.unipi.data.mining.backend.dtos.CommentDto;
 import com.unipi.data.mining.backend.dtos.InterfaceSongDto;
 import com.unipi.data.mining.backend.dtos.SongDto;
@@ -104,6 +106,25 @@ public class SongController extends ServiceController{
 
         return new ResponseEntity<>(
                 mapper.commentToCommentDto(songService.commentSong(id, comment)),
+                HttpStatus.OK
+        );
+    }
+
+    @GetMapping("top_albums")
+    ResponseEntity<List<Album>> getClusterKHighestRatedAlbums(@RequestParam("cluster") int cluster,
+                                                              @RequestParam("k") int k) {
+
+        return new ResponseEntity<>(
+                songService.getClusterKHighestRatedAlbums(cluster, k),
+                HttpStatus.OK
+        );
+    }
+
+    @GetMapping("most_danceable_cluster")
+    ResponseEntity<Id> getMostDanceableCluster() {
+
+        return new ResponseEntity<>(
+                songService.getMostDanceableCluster(),
                 HttpStatus.OK
         );
     }

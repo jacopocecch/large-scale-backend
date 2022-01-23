@@ -1,5 +1,6 @@
 package com.unipi.data.mining.backend.service.db;
 
+import com.unipi.data.mining.backend.data.Counter;
 import com.unipi.data.mining.backend.data.Distance;
 import com.unipi.data.mining.backend.data.Survey;
 import com.unipi.data.mining.backend.entities.mongodb.*;
@@ -20,7 +21,7 @@ public class DbService extends EntityService{
     public void addLikesHeuristic() {
 
         List<String[]> csvRelationships = new ArrayList<>();
-        List<MongoUser> mongoUsers = mongoUserRepository.findAllWithSurveyAndCluster();
+        List<MongoUser> mongoUsers = customUserRepository.findAllWithSurveyAndCluster();
         List<MongoUser> extroverseUsers = new ArrayList<>();
         List<MongoUser> agreeableUsers = new ArrayList<>();
         List<MongoUser> conscentiousUsers = new ArrayList<>();
@@ -118,7 +119,7 @@ public class DbService extends EntityService{
 
         for (int i = 1; i < 6; i++) {
 
-            List<MongoUser> users = mongoUserRepository.findMongoUsersByCluster(i);
+            List<MongoUser> users = customUserRepository.findByClusterWithSurvey(i);
             Map<String, List<Distance>> stringListMap = new HashMap<>();
 
             int index = 0;
@@ -322,6 +323,102 @@ public class DbService extends EntityService{
         }
 
         customSongRepository.bulkUpdateLikes(toBeUpdated);
+    }
+
+    public void hashPasswords() {
+
+        List<MongoUser> mongoUsers = customUserRepository.findAllWithPassword();
+        List<MongoUser> usersToBeUpdated = new ArrayList<>();
+
+        for (MongoUser mongoUser: mongoUsers) {
+            String password = mongoUser.getPassword();
+            mongoUser.setPassword(passwordEncoder.encode(password));
+            usersToBeUpdated.add(mongoUser);
+
+            if (usersToBeUpdated.size() == 1000) {
+                customUserRepository.bulkUpdatePassword(usersToBeUpdated);
+                usersToBeUpdated.clear();
+            }
+        }
+
+        if (!usersToBeUpdated.isEmpty()) {
+            customUserRepository.bulkUpdatePassword(usersToBeUpdated);
+        }
+    }
+
+    public void generatePasswords() {
+
+        List<MongoUser> mongoUsers = customUserRepository.findAllIds();
+        List<MongoUser> usersToBeUpdated = new ArrayList<>();
+
+        for (MongoUser mongoUser: mongoUsers) {
+            String password = utils.generatePassword();
+            mongoUser.setPassword(password);
+            usersToBeUpdated.add(mongoUser);
+
+            if (usersToBeUpdated.size() == 1000) {
+                customUserRepository.bulkUpdatePassword(usersToBeUpdated);
+                usersToBeUpdated.clear();
+            }
+        }
+
+        if (!usersToBeUpdated.isEmpty()) {
+            customUserRepository.bulkUpdatePassword(usersToBeUpdated);
+        }
+    }
+
+    public void changeDuplicateEmails() {
+
+        List<MongoUser> users = customUserRepository.findAllWithEmail();
+
+        Map<String, Counter> emailMap = new HashMap<>();
+
+        Map<String, List<MongoUser>> duplicateEmails = new HashMap<>();
+
+        for (MongoUser user: users) {
+
+            if (emailMap.containsKey(user.getEmail())) {
+                Counter counter = emailMap.get(user.getEmail());
+                counter.setCount(counter.getCount() + 1);
+                counter.getUsers().add(user);
+                emailMap.put(user.getEmail(), counter);
+            }
+            else {
+                emailMap.put(user.getEmail(), new Counter(1, user));
+            }
+        }
+
+        for (Map.Entry<String, Counter> entry: emailMap.entrySet()) {
+            if (entry.getValue().getCount() > 1) duplicateEmails.put(entry.getKey(), entry.getValue().getUsers());
+        }
+
+        List<MongoUser> toBeUpdated = new ArrayList<>();
+
+        for (Map.Entry<String, List<MongoUser>> entry: duplicateEmails.entrySet()) {
+
+            List<MongoUser> mongoUsers = entry.getValue();
+
+            if (mongoUsers.size() > 1) {
+
+                int i = 0;
+
+                for (MongoUser mongoUser: mongoUsers) {
+
+                    String userEmail = mongoUser.getEmail();
+                    userEmail = userEmail.replace("@", i + "@");
+                    mongoUser.setEmail(userEmail);
+                    i++;
+                }
+            }
+
+            toBeUpdated.addAll(mongoUsers);
+
+            if (toBeUpdated.size() > 950) {
+                customUserRepository.bulkUpdateEmail(toBeUpdated);
+                toBeUpdated.clear();
+            }
+        }
+        customUserRepository.bulkUpdateEmail(toBeUpdated);
     }
 
 }
