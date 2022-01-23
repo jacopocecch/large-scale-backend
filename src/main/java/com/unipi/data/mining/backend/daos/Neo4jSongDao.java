@@ -188,21 +188,28 @@ public class Neo4jSongDao extends Neo4jDao{
         }
     }
 
-    public int getSongClusterLikes(String id, int cluster, int like) {
+    public Object getSongClusterLikes(String id, int cluster, int like) {
 
         try (Session session = driver.session()) {
 
             return session.readTransaction(transaction -> {
                 String query = """
-                        MATCH(s:Song {mongoId: $mongo_id})<-[r:LIKES{value: $like}]-(u:User {cluster: $cluster})
-                        RETURN COUNT(r)""";
+                        MATCH(s:Song {mongoId: $mongo_id})<-[r:LIKES{value: $like}]-(u:User)
+                        RETURN u.cluster, COUNT(r)""";
 
                 Map<String, Object> params = new HashMap<>();
                 params.put("mongo_id", id);
                 params.put("like", like);
-                params.put("artists", cluster);
+                params.put("cluster", cluster);
 
-                return getCount(transaction, query, params);
+                try {
+                    Result result = transaction.run(query, params);
+                    System.out.println(result.list(record -> record.get(0).asMap()));
+                } catch (Neo4jException e) {
+                    LOGGER.error(query + " raised an exception", e);
+                    throw e;
+                }
+                return null;
             });
         }
     }
