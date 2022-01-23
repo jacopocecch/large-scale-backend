@@ -1,9 +1,14 @@
 package com.unipi.data.mining.backend.repositories;
 
+import com.unipi.data.mining.backend.data.Country;
+import com.unipi.data.mining.backend.data.HighestVarianceCluster;
+import com.unipi.data.mining.backend.data.Survey;
 import com.unipi.data.mining.backend.entities.mongodb.MongoUser;
 import org.bson.types.ObjectId;
+import org.neo4j.cypherdsl.core.Match;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.BulkOperations;
+import org.springframework.data.mongodb.core.aggregation.*;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
@@ -44,8 +49,94 @@ public class CustomUserRepository extends CustomRepository{
         return mongoTemplate.exists(Query.query(Criteria.where("email").is(email)), MongoUser.class);
     }
 
-    public void getClusterWithHighestVariance() {
+    public HighestVarianceCluster getClusterWithHighestVariance() {
 
+        GroupOperation groupByCluster = Aggregation.group("cluster")
+            .max("agreeableness").as("AGRMax")
+            .min("agreeableness").as("AGRMin")
+            .max("openness").as("OPNMax")
+            .min("openness").as("OPNMin")
+            .max("conscientiousness").as("CSNMax")
+            .min("conscientiousness").as("CSNMin")
+            .max("extraversion").as("EXTMax")
+            .min("extraversion").as("EXTMin")
+            .max("neuroticism").as("ESTMax")
+            .min("neuroticism").as("ESTMin")
+            .max("time_spent").as("TimeSpentMax")
+            .min("time_spent").as("TimeSpentMin");
+
+        ProjectionOperation projectDifferences = Aggregation.project()
+                .and("AGRMax").minus("AGRMin").as("differenceAGR")
+                .and("OPNMax").minus("OPNMin").as("differenceOPN")
+                .and("CSNMax").minus("CSNMin").as("differenceCSN")
+                .and("EXTMax").minus("EXTMin").as("differenceEXT")
+                .and("ESTMax").minus("ESTMin").as("differenceEST")
+                .and("TimeSpentMax").minus("TimeSpentMin").as("differenceTS");
+
+
+        AggregationExpression difference = AccumulatorOperators.Sum.sumOf("differenceAGR")
+                .and("differenceOPN")
+                .and("differenceCSN")
+                .and("differenceEXT")
+                .and("differenceEST")
+                .and("differenceTS");
+
+        ProjectionOperation projectDifference = Aggregation.project("_id")
+                .and(difference).as("difference");
+
+        SortOperation sortOperation = Aggregation.sort(Sort.by(Sort.Direction.DESC, "difference"));
+
+        LimitOperation limitOperation = Aggregation.limit(1);
+
+        Aggregation aggregation = Aggregation.newAggregation(groupByCluster, projectDifferences, projectDifference, sortOperation, limitOperation);
+
+        AggregationResults<HighestVarianceCluster> result = mongoTemplate.aggregate(aggregation, "user", HighestVarianceCluster.class);
+
+        return result.getUniqueMappedResult();
+    }
+
+    public List<Country> getTopKCountries(int k) {
+
+        GroupOperation groupByCountry = Aggregation.group("country")
+                .avg("agreeableness").as("AGR")
+                .avg("openness").as("OPN")
+                .avg("conscientiousness").as("CSN")
+                .avg("extraversion").as("EXT")
+                .avg("neuroticism").as("EST");
+
+        AggregationExpression average = AccumulatorOperators.Avg.avgOf("AGR").and("OPN").and("CSN").and("EXT").and("EST");
+
+        ProjectionOperation projectAverage = Aggregation.project("_id")
+                .and(average).as("avg");
+
+        SortOperation sortOperation = Aggregation.sort(Sort.by(Sort.Direction.DESC, "avg"));
+
+        LimitOperation limitOperation = Aggregation.limit(k);
+
+        Aggregation aggregation = Aggregation.newAggregation(groupByCountry, projectAverage, sortOperation, limitOperation);
+
+        AggregationResults<Country> results = mongoTemplate.aggregate(aggregation, "user", Country.class);
+
+        return results.getMappedResults();
+    }
+
+    public Survey getAverageClusterValues(int cluster) {
+
+        MatchOperation matchCluster = Aggregation.match(Criteria.where("cluster").is(cluster));
+
+        GroupOperation groupOperation = Aggregation.group("cluster")
+                .avg("agreeableness").as("agreeableness")
+                .avg("openness").as("openness")
+                .avg("conscientiousness").as("conscientiousness")
+                .avg("extraversion").as("extraversion")
+                .avg("neuroticism").as("neuroticism")
+                .avg("time_spent").as("timeSpent");
+
+        Aggregation aggregation = Aggregation.newAggregation(matchCluster, groupOperation);
+
+        AggregationResults<Survey> results = mongoTemplate.aggregate(aggregation, "user", Survey.class);
+
+        return results.getUniqueMappedResult();
     }
 
     // UTILITIES

@@ -1,9 +1,6 @@
 package com.unipi.data.mining.backend.service.db;
 
-import com.unipi.data.mining.backend.data.Counter;
-import com.unipi.data.mining.backend.data.Distance;
-import com.unipi.data.mining.backend.data.Login;
-import com.unipi.data.mining.backend.data.Survey;
+import com.unipi.data.mining.backend.data.*;
 import com.unipi.data.mining.backend.entities.mongodb.MongoUser;
 import com.unipi.data.mining.backend.entities.neo4j.Neo4jUser;
 import com.unipi.data.mining.backend.service.exceptions.DbException;
@@ -246,28 +243,7 @@ public class UserService extends EntityService {
 
     public Survey getUserClusterClusterValues(String id) {
 
-        List<MongoUser> mongoUsers = mongoUserRepository.findMongoUsersByCluster(getMongoUserById(id).getCluster());
-        List<Survey> surveys = new ArrayList<>();
-
-        for (MongoUser mongoUser:mongoUsers) {
-
-            if (!utils.areSurveyValuesCorrect(mongoUser)) {
-                continue;
-            }
-
-            surveys.add(new Survey(mongoUser));
-        }
-
-        Survey survey = new Survey();
-
-        survey.setExtraversion(Math.round(surveys.stream().mapToDouble(Survey::getExtraversion).average().orElse(0.0) * 100.00) / 100.00);
-        survey.setNeuroticism(Math.round(surveys.stream().mapToDouble(Survey::getNeuroticism).average().orElse(0.0) * 100.00) / 100.00);
-        survey.setAgreeableness(Math.round(surveys.stream().mapToDouble(Survey::getAgreeableness).average().orElse(0.0) * 100.00) / 100.00);
-        survey.setOpenness(Math.round(surveys.stream().mapToDouble(Survey::getOpenness).average().orElse(0.0) * 100.00) / 100.00);
-        survey.setConscientiousness(Math.round(surveys.stream().mapToDouble(Survey::getConscientiousness).average().orElse(0.0) * 100.00) / 100.00);
-        survey.setTimeSpent(Math.round(surveys.stream().mapToDouble(Survey::getTimeSpent).average().orElse(0.0) * 100.00) / 100.00);
-
-        return survey;
+        return customUserRepository.getAverageClusterValues(getMongoUserById(id).getCluster());
     }
 
     public MongoUser getMostSimilarUser(String id) {
@@ -419,5 +395,15 @@ public class UserService extends EntityService {
     public List<MongoUser> searchUsersByUsername(String username) {
 
         return customUserRepository.getUsersByUsernameStartingWith(username);
+    }
+
+    public int getClusterWithHighestVariance() {
+
+        return customUserRepository.getClusterWithHighestVariance().getId();
+    }
+
+    public List<Country> getTopKCountries(int k){
+
+        return customUserRepository.getTopKCountries(k);
     }
 }

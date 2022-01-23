@@ -1,5 +1,6 @@
 package com.unipi.data.mining.backend.controllers.services;
 
+import com.unipi.data.mining.backend.data.Country;
 import com.unipi.data.mining.backend.data.Login;
 import com.unipi.data.mining.backend.dtos.*;
 import com.unipi.data.mining.backend.entities.mongodb.MongoUser;
@@ -217,5 +218,23 @@ public class UserController extends ServiceController {
         userService.quarantineUser(id);
 
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @GetMapping("clusters/highest_variance")
+    ResponseEntity<Integer> getClusterWithHighestVariance() {
+
+        return new ResponseEntity<>(
+                userService.getClusterWithHighestVariance(),
+                HttpStatus.OK
+        );
+    }
+
+    @GetMapping("top_countries")
+    ResponseEntity<List<Country>> getTopKCountries(@RequestParam(value = "k") int k) {
+
+        return new ResponseEntity<>(
+                userService.getTopKCountries(k),
+                HttpStatus.OK
+        );
     }
  }
