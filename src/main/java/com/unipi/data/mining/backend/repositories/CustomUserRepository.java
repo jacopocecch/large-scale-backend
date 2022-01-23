@@ -44,6 +44,10 @@ public class CustomUserRepository extends CustomRepository{
         return mongoTemplate.exists(Query.query(Criteria.where("email").is(email)), MongoUser.class);
     }
 
+    public void getClusterWithHighestVariance() {
+
+    }
+
     // UTILITIES
 
     public void updateEmail(MongoUser user, String email) {

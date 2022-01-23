@@ -50,11 +50,13 @@ public class SongDto implements Serializable {
     @Min(1950)
     private int year;
     private List<CommentSubsetDto> comments;
+    private int cluster;
+    private List<LikeDto> likes;
 
     public SongDto() {
     }
 
-    public SongDto(ObjectId id, String name, String album, List<String> artists, int trackNumber, int discNumber, boolean explicit, int key, int mode, double danceability, double energy, double loudness, double speechiness, double acousticness, double instrumentalness, double liveness, double valence, int tempo, int duration, int timeSignature, int year, List<CommentSubsetDto> comments) {
+    public SongDto(ObjectId id, String name, String album, List<String> artists, int trackNumber, int discNumber, boolean explicit, int key, int mode, double danceability, double energy, double loudness, double speechiness, double acousticness, double instrumentalness, double liveness, double valence, int tempo, int duration, int timeSignature, int year, List<CommentSubsetDto> comments, int cluster, List<LikeDto> likes) {
         this.id = id;
         this.name = name;
         this.album = album;
@@ -77,6 +79,8 @@ public class SongDto implements Serializable {
         this.timeSignature = timeSignature;
         this.year = year;
         this.comments = comments;
+        this.cluster = cluster;
+        this.likes = likes;
     }
 
     public ObjectId getId() {
@@ -253,5 +257,21 @@ public class SongDto implements Serializable {
 
     public void setComments(List<CommentSubsetDto> comments) {
         this.comments = comments;
+    }
+
+    public int getCluster() {
+        return cluster;
+    }
+
+    public void setCluster(int cluster) {
+        this.cluster = cluster;
+    }
+
+    public List<LikeDto> getLikes() {
+        return likes;
+    }
+
+    public void setLikes(List<LikeDto> likes) {
+        this.likes = likes;
     }
 }

@@ -292,48 +292,36 @@ public class DbService extends EntityService{
             }
         }
 
-        int i = 0;
+        List<MongoSong> toBeUpdated = new ArrayList<>();
 
+        for (Map.Entry<String, MongoSong> songEntry: mongoSongMap.entrySet()) {
 
-
-        /*
-        for (MongoSong song: mongoSongs) {
-
-            List<Like> likeList = new ArrayList<>();
+            MongoSong song = songEntry.getValue();
+            List<Like> likeList = song.getLikes();
             int predominantCluster = 0;
             int maxLikes = 0;
 
-            for (int i = 1; i < 6; i++) {
+            for (Like like: likeList) {
 
-                neo4jSongDao.getSongClusterLikes(song.getId().toString(), i, 1);
-                neo4jSongDao.getSongClusterLikes(song.getId().toString(), i, -1);
+                int likes = like.getNumLikes();
+                int unlikes = like.getNumUnlikes();
                 int totalLikes = likes - unlikes;
                 if (totalLikes > maxLikes) {
-                    predominantCluster = i;
+                    predominantCluster = like.getCluster();
                     maxLikes = totalLikes;
                 }
-                Like like = new Like(i, likes, unlikes);
-                likeList.add(like);
             }
-
+            if (maxLikes != 0){
+                int post = 0;
+            }
             if (predominantCluster == 0) {
                 predominantCluster = ThreadLocalRandom.current().nextInt(1, 6);
             }
-
-            song.setLikes(likeList);
             song.setCluster(predominantCluster);
-
-            if (maxLikes > 0) {
-                int j = 0;
-            }
-
-            System.out.println(index);
-            index--;
+            toBeUpdated.add(song);
         }
 
-        customSongRepository.bulkUpdateLikes(mongoSongs);
-
-         */
+        customSongRepository.bulkUpdateLikes(toBeUpdated);
     }
 
 }
