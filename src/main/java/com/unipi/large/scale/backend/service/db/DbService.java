@@ -421,4 +421,58 @@ public class DbService extends EntityService{
         customUserRepository.bulkUpdateEmail(toBeUpdated);
     }
 
+    public void changeDuplicateUsername() {
+
+        List<MongoUser> users = customUserRepository.findAllWithUsername();
+
+        Map<String, Counter> usernameMap = new HashMap<>();
+
+        Map<String, List<MongoUser>> duplicateUsernames = new HashMap<>();
+
+        for (MongoUser user: users) {
+
+            if (usernameMap.containsKey(user.getUsername())) {
+                Counter counter = usernameMap.get(user.getUsername());
+                counter.setCount(counter.getCount() + 1);
+                counter.getUsers().add(user);
+                usernameMap.put(user.getUsername(), counter);
+            }
+            else {
+                usernameMap.put(user.getUsername(), new Counter(1, user));
+            }
+        }
+
+        for (Map.Entry<String, Counter> entry: usernameMap.entrySet()) {
+            if (entry.getValue().getCount() > 1) duplicateUsernames.put(entry.getKey(), entry.getValue().getUsers());
+        }
+
+        List<MongoUser> toBeUpdated = new ArrayList<>();
+
+        for (Map.Entry<String, List<MongoUser>> entry: duplicateUsernames.entrySet()) {
+
+            List<MongoUser> mongoUsers = entry.getValue();
+
+            if (mongoUsers.size() > 1) {
+
+                int i = 0;
+
+                for (MongoUser mongoUser: mongoUsers) {
+
+                    String userUsername = mongoUser.getUsername();
+                    userUsername = userUsername + i;
+                    mongoUser.setUsername(userUsername);
+                    i++;
+                }
+            }
+
+            toBeUpdated.addAll(mongoUsers);
+
+            if (toBeUpdated.size() > 950) {
+                customUserRepository.bulkUpdateUsername(toBeUpdated);
+                toBeUpdated.clear();
+            }
+        }
+        customUserRepository.bulkUpdateUsername(toBeUpdated);
+    }
+
 }

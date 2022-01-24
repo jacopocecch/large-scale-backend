@@ -188,6 +188,13 @@ public class CustomUserRepository extends CustomRepository{
         return mongoTemplate.find(query, MongoUser.class);
     }
 
+    public List<MongoUser> findAllWithUsername() {
+
+        Query query = new Query();
+        query.fields().include("username");
+        return mongoTemplate.find(query, MongoUser.class);
+    }
+
     public List<MongoUser> findAllWithPassword() {
 
         Query query = new Query();
@@ -211,6 +218,17 @@ public class CustomUserRepository extends CustomRepository{
         for (MongoUser user: users) {
             Update update = new Update();
             update.set("email", user.getEmail());
+            bulkOperations.updateOne(Query.query(Criteria.where("id").is(user.getId())), update);
+        }
+        System.out.println(bulkOperations.execute());
+    }
+
+    public void bulkUpdateUsername(List<MongoUser> users) {
+
+        BulkOperations bulkOperations = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, MongoUser.class);
+        for (MongoUser user: users) {
+            Update update = new Update();
+            update.set("username", user.getUsername());
             bulkOperations.updateOne(Query.query(Criteria.where("id").is(user.getId())), update);
         }
         System.out.println(bulkOperations.execute());
