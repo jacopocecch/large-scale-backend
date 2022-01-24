@@ -253,9 +253,9 @@ public class UserService extends EntityService {
         return neo4jUserDao.getUserFriends(id);
     }
 
-    public Survey getUserClusterClusterValues(String id) {
+    public Survey getUserClusterClusterValues(int id) {
 
-        return customUserRepository.getAverageClusterValues(getMongoUserById(new ObjectId(id)).getCluster());
+        return customUserRepository.getAverageClusterValues(id);
     }
 
     public MongoUser getMostSimilarUser(String id) {

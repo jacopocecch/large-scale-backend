@@ -182,7 +182,7 @@ public class UserController extends ServiceController {
     }
 
     @GetMapping("cluster_cluster_values/{id}")
-    ResponseEntity<SurveyDto> getUserClusterClusterValues(@PathVariable("id") String id) {
+    ResponseEntity<SurveyDto> getUserClusterClusterValues(@PathVariable("id") int id) {
 
         return new ResponseEntity<>(
                 mapper.surveyToSurveyDto(userService.getUserClusterClusterValues(id)),
