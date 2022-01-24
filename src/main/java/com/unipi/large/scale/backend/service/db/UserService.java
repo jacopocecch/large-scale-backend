@@ -193,7 +193,7 @@ public class UserService extends EntityService {
 
         SummaryCounters counters = neo4jUserDao.updateFriendRequest(fromUserId, toUserId, newStatus);
 
-        if (counters.relationshipsCreated() == 0 || counters.propertiesSet() == 0) {
+        if (counters.relationshipsCreated() == 0 && counters.propertiesSet() == 0) {
             logger.error("Unable to update or create friend request between " + fromUserId + " and " + toUserId);
             throw new DbException("Unable to update or create friend request between " + fromUserId + " and " + toUserId);
         }

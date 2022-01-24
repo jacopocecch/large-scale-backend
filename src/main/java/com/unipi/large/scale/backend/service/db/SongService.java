@@ -76,7 +76,6 @@ public class SongService extends EntityService{
         return song;
     }
 
-
     public Neo4jSong getNeo4jSongByMongoId(String id) {
 
         Optional<Neo4jSong> optionalNeo4jSong = neo4jSongDao.getByMongoId(id);
@@ -110,7 +109,7 @@ public class SongService extends EntityService{
 
         if (currentLike.isEmpty() || currentLike.get().get(0).asInt() != like){
             SummaryCounters counters = neo4jSongDao.updateLikeRelationship(userId, songId, like);
-            if (counters.relationshipsCreated() == 0 || counters.propertiesSet() == 0) {
+            if (counters.relationshipsCreated() == 0 && counters.propertiesSet() == 0) {
                 logger.error("Unable to update like relationship for neo4j user " + userId + " and song " + songId);
                 throw new DbException("Unable to update like relationship for neo4j user " + userId + " and song " + songId);
             }

@@ -490,3 +490,4 @@ Caused by: org.neo4j.driver.exceptions.ServiceUnavailableException: Could not pe
 		at org.neo4j.driver.internal.async.NetworkSession.beginTransactionAsync(NetworkSession.java:108)
 		at org.neo4j.driver.internal.async.NetworkSession.beginTransactionAsync(NetworkSession.java:99)
 		... 32 common frames omitted
+2022-01-24 19:08:23,800 ERROR com.unipi.large.scale.backend.service.db.UserService [http-nio-8080-exec-1] Unable to update or create friend request between 61e91c1113c1e6256f680cda and 61eed66108477d056be65148
