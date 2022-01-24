@@ -24,6 +24,7 @@ public class SongService extends EntityService{
         MongoSong mongoSong = customSongRepository.findById(new ObjectId(id));
 
         if (mongoSong == null){
+            logger.error("No song found with id " + id);
             throw new DbException("No Song found with id " + id);
         }
 
