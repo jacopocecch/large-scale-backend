@@ -131,7 +131,7 @@ public class CustomSongRepository extends CustomRepository{
     public List<MongoSong> getSongsStartingWithName(String name) {
 
         Query query = new Query();
-        query.addCriteria(Criteria.where("name").regex("^" + name));
+        query.addCriteria(Criteria.where("name").regex("^" + name, "i"));
         query.with(Sort.by(Sort.Direction.ASC, "name"));
         query.fields().include("name").include("album").include("artists");
         query.limit(10);

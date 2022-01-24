@@ -56,10 +56,12 @@ public class UserService extends EntityService {
     @Transactional
     public MongoUser registerUser(MongoUser mongoUser) {
 
-        if (customUserRepository.existsByUsername(mongoUser.getUsername())) throw new RegistrationException("Username already taken");
+        if (customUserRepository.existsByUsername(mongoUser.getUsername().toLowerCase(Locale.ROOT))) throw new RegistrationException("Username already taken");
 
-        if (customUserRepository.existsByEmail(mongoUser.getEmail())) throw new RegistrationException("This email already belongs to another user");
+        if (customUserRepository.existsByEmail(mongoUser.getEmail().toLowerCase(Locale.ROOT))) throw new RegistrationException("This email already belongs to another user");
 
+        mongoUser.setUsername(mongoUser.getUsername().toLowerCase(Locale.ROOT));
+        mongoUser.setEmail(mongoUser.getEmail().toLowerCase(Locale.ROOT));
         mongoUser.setPassword(passwordEncoder.encode(mongoUser.getPassword()));
         mongoUser.setRegistrationDate(LocalDate.now());
 
@@ -110,6 +112,9 @@ public class UserService extends EntityService {
         MongoUser dbData = getMongoUserById(id);
         Neo4jUser neo4jUser = new Neo4jUser(dbData.getId().toString(), dbData.getFirstName(), dbData.getLastName(), dbData.getCluster(), dbData.getCountry(), dbData.getImage());
 
+        newData.setUsername(newData.getUsername().toLowerCase(Locale.ROOT));
+        newData.setEmail(newData.getEmail().toLowerCase(Locale.ROOT));
+
         Map<String, String> toBeUpdated = new HashMap<>();
 
         getChangedInfo(dbData, newData, toBeUpdated, neo4jUser);
@@ -131,7 +136,7 @@ public class UserService extends EntityService {
 
     public MongoUser login(Login login) {
 
-        MongoUser mongoUser = customUserRepository.findByEmail(login.getEmail());
+        MongoUser mongoUser = customUserRepository.findByEmail(login.getEmail().toLowerCase(Locale.ROOT));
 
         if (mongoUser == null) throw new LoginException("No user found with email: " + login.getEmail());
 
@@ -331,7 +336,7 @@ public class UserService extends EntityService {
 
     public List<MongoUser> searchUsersByUsername(String username) {
 
-        return customUserRepository.getUsersByUsernameStartingWith(username);
+        return customUserRepository.getUsersByUsernameStartingWith(username.toLowerCase(Locale.ROOT));
     }
 
     public int getClusterWithHighestVariance() {
