@@ -4,6 +4,10 @@ import com.unipi.large.scale.backend.data.Counter;
 import com.unipi.large.scale.backend.data.Distance;
 import com.unipi.large.scale.backend.data.Survey;
 import com.unipi.large.scale.backend.entities.mongodb.*;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +21,7 @@ public class DbService extends EntityService{
 
     private static final String CSV_FILE_NAME_LIKES = "/Users/jacopo/IdeaProjects/large-scale-project/large-scale-backend/song_preference.csv";
     private static final String CSV_FILE_NAME_SIMILARITIES = "/Users/jacopo/IdeaProjects/large-scale-project/large-scale-backend/similarities.csv";
+    private static final String CSV_FILE_NAME_PASSWORDS = "/Users/jacopo/IdeaProjects/large-scale-project/large-scale-backend/passwords.csv";
 
     public void addLikesHeuristic() {
 
@@ -473,6 +478,49 @@ public class DbService extends EntityService{
             }
         }
         customUserRepository.bulkUpdateUsername(toBeUpdated);
+    }
+
+    public void savePlainTextPasswords() {
+
+        List<MongoUser> mongoUsers = customUserRepository.findAllWithEmail();
+
+        List<String> emails = new ArrayList<>();
+
+        List<String[]> passwords = new ArrayList<>();
+
+        Map<String, String> passwordMap = new HashMap<>();
+
+        for (MongoUser mongoUser: mongoUsers) {
+
+            emails.add(mongoUser.getEmail());
+        }
+
+        JSONParser jsonParser = new JSONParser();
+
+        try {
+            JSONArray jsonArray = (JSONArray) jsonParser.parse(new FileReader("/Users/jacopo/IdeaProjects/large-scale-project/password.json"));
+
+            for (JSONObject object : (Iterable<JSONObject>) jsonArray) {
+                passwordMap.put(object.get("email").toString(), object.get("password").toString());
+            }
+
+        } catch (IOException | ParseException e) {
+            e.printStackTrace();
+        }
+
+        for (String email: emails) {
+
+            passwords.add(new String[] {email, passwordMap.get(email)});
+        }
+
+        File csvOutputFile = new File(CSV_FILE_NAME_PASSWORDS);
+        try (PrintWriter pw = new PrintWriter(csvOutputFile)) {
+            passwords.stream()
+                    .map(this::convertToCSV)
+                    .forEach(pw::println);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
 }

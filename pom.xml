@@ -43,11 +43,6 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>nz.ac.waikato.cms.moa</groupId>
-			<artifactId>moa</artifactId>
-			<version>2021.07.0</version>
-		</dependency>
-		<dependency>
 			<groupId>nz.ac.waikato.cms.weka</groupId>
 			<artifactId>weka-dev</artifactId>
 			<version>3.9.5</version>
@@ -90,6 +85,11 @@
 			<groupId>ca.umontreal.iro</groupId>
 			<artifactId>ssj</artifactId>
 			<version>2.5</version>
+		</dependency>
+		<dependency>
+			<groupId>com.googlecode.json-simple</groupId>
+			<artifactId>json-simple</artifactId>
+			<version>1.1.1</version>
 		</dependency>
 	</dependencies>
 
