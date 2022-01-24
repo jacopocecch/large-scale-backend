@@ -8,6 +8,7 @@ import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.exceptions.Neo4jException;
+import org.neo4j.driver.summary.SummaryCounters;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
@@ -32,11 +33,11 @@ public class Neo4jUserDao extends Neo4jDao{
         }
     }
 
-    public void deleteByMongoId(String id) {
+    public SummaryCounters deleteByMongoId(String id) {
 
         try (Session session = driver.session()){
 
-            session.writeTransaction(transaction -> {
+            return session.writeTransaction(transaction -> {
                 String query = """
                         MATCH (u:User)
                         WHERE u.mongoId = $mongo_id
@@ -44,17 +45,16 @@ public class Neo4jUserDao extends Neo4jDao{
 
                 Map<String, Object> params = Collections.singletonMap("mongo_id", id);
 
-                runTransaction(transaction, query, params);
-                return null;
+                return runTransaction(transaction, query, params);
             });
         }
     }
 
-    public void createUser(Neo4jUser user) {
+    public SummaryCounters createUser(Neo4jUser user) {
 
         try (Session session = driver.session()){
 
-            session.writeTransaction(transaction -> {
+            return session.writeTransaction(transaction -> {
                 String query = """
                         CREATE (u: User {mongoId: $mongo_id, firstName: $first_name, lastName: $last_name, country: $country, picture: $image})""";
 
@@ -65,17 +65,16 @@ public class Neo4jUserDao extends Neo4jDao{
                 params.put("country", user.getCountry());
                 params.put("image", user.getImage());
 
-                runTransaction(transaction, query, params);
-                return null;
+                return runTransaction(transaction, query, params);
             });
         }
     }
 
-    public void updateUser(Neo4jUser user) {
+    public SummaryCounters updateUser(Neo4jUser user) {
 
         try (Session session = driver.session()){
 
-            session.writeTransaction(transaction -> {
+            return session.writeTransaction(transaction -> {
                 String query = """
                         MATCH (u: User {mongoId: $mongo_id})
                         SET u.firstName = $first_name, u.lastName = $last_name, u.cluster = $cluster, u.country = $country, u.picture = $image
@@ -89,17 +88,16 @@ public class Neo4jUserDao extends Neo4jDao{
                 params.put("country", user.getCountry());
                 params.put("image", user.getImage());
 
-                runTransaction(transaction, query, params);
-                return null;
+                return runTransaction(transaction, query, params);
             });
         }
     }
 
-    public void updateCluster(Neo4jUser user) {
+    public SummaryCounters updateCluster(Neo4jUser user) {
 
         try (Session session = driver.session()){
 
-            session.writeTransaction(transaction -> {
+            return session.writeTransaction(transaction -> {
                 String query = """
                         MATCH (u: User {mongoId: $mongo_id})
                         SET u.cluster = $cluster
@@ -109,8 +107,7 @@ public class Neo4jUserDao extends Neo4jDao{
                 params.put("mongo_id", user.getMongoId());
                 params.put("cluster", user.getCluster());
 
-                runTransaction(transaction, query, params);
-                return null;
+                return runTransaction(transaction, query, params);
             });
         }
     }
@@ -132,11 +129,11 @@ public class Neo4jUserDao extends Neo4jDao{
         }
     }
 
-    public void addSimilarityRelationship(String fromId, String toId, double weight){
+    public SummaryCounters addSimilarityRelationship(String fromId, String toId, double weight){
 
         try (Session session = driver.session()){
 
-            session.writeTransaction(transaction -> addOrUpdateSimilarity(transaction, fromId, toId, weight));
+            return session.writeTransaction(transaction -> addOrUpdateSimilarity(transaction, fromId, toId, weight));
         }
     }
 
@@ -176,7 +173,7 @@ public class Neo4jUserDao extends Neo4jDao{
         }
     }
 
-    public void addFriendRequest(String fromId, String toId){
+    public SummaryCounters addFriendRequest(String fromId, String toId){
 
         try (Session session = driver.session()){
 
@@ -198,7 +195,7 @@ public class Neo4jUserDao extends Neo4jDao{
                 throw new RuntimeException("Friend request already sent or incoming!");
             }
 
-            session.writeTransaction(transaction -> {
+            return session.writeTransaction(transaction -> {
                 String query = """
                         MATCH(a: User)
                         MATCH(b: User)
@@ -211,16 +208,16 @@ public class Neo4jUserDao extends Neo4jDao{
                 params.put("to_mongo_id", toId);
                 params.put("status", FriendRequest.Status.UNKNOWN.name());
 
-                runTransaction(transaction, query, params);
-                return null;
+                return runTransaction(transaction, query, params);
             });
         }
     }
 
-    public void updateFriendRequest(String fromId, String toId, FriendRequest.Status status) {
+    public SummaryCounters updateFriendRequest(String fromId, String toId, FriendRequest.Status status) {
 
         try (Session session = driver.session()) {
-            session.writeTransaction(transaction -> {
+
+            return session.writeTransaction(transaction -> {
                 String query = """
                         MATCH(a: User)
                         MATCH(b: User)
@@ -234,17 +231,16 @@ public class Neo4jUserDao extends Neo4jDao{
                 params.put("to_mongo_id", toId);
                 params.put("status", status.name());
 
-                runTransaction(transaction, query, params);
-                return null;
+                return runTransaction(transaction, query, params);
             });
         }
     }
 
-    public void deleteFriendRequest(String fromId, String toId) {
+    public SummaryCounters deleteFriendRequest(String fromId, String toId) {
 
         try (Session session = driver.session()){
 
-            session.writeTransaction(transaction -> {
+            return session.writeTransaction(transaction -> {
                 String query = """
                         MATCH (a: User {mongoId: $from_mongo_id})-[r:FRIEND_REQUEST]-(b: User {mongoId: $to_mongo_id})
                         DELETE r""";
@@ -253,8 +249,7 @@ public class Neo4jUserDao extends Neo4jDao{
                 params.put("from_mongo_id", fromId);
                 params.put("to_mongo_id", toId);
 
-               runTransaction(transaction, query, params);
-                return null;
+               return runTransaction(transaction, query, params);
             });
         }
     }
@@ -271,19 +266,18 @@ public class Neo4jUserDao extends Neo4jDao{
 
                 Map<String, Object> params = Collections.singletonMap("mongo_id", id);
                 runTransaction(transaction, query, params);
+
                 query = """
-                         MATCH (u:User)-[r:SIMILAR_TO]-(:User)
-                         WHERE u.mongoId = $mongo_id
-                         SET r.weight = 0
-                """;
+                                 MATCH (u:User)-[r:SIMILAR_TO]-(:User)
+                                 WHERE u.mongoId = $mongo_id
+                                 SET r.weight = 0
+                        """;
+
                 params = Collections.singletonMap("mongo_id", id);
-                runTransaction(transaction, query, params);
-                return null;
+                return runTransaction(transaction, query, params);
             });
         }
     }
-
-
 
     public boolean areFriends(String fromId, String toId) {
 
@@ -420,7 +414,7 @@ public class Neo4jUserDao extends Neo4jDao{
                     Result result = transaction.run(query, params);
                     return result.single().get(0).asString();
                 } catch (Neo4jException e) {
-                    LOGGER.error(query + " raised an exception", e);
+                    logger.error(query + " raised an exception", e);
                     throw e;
                 }
             });
@@ -454,7 +448,7 @@ public class Neo4jUserDao extends Neo4jDao{
         }
     }
 
-    private Object addOrUpdateSimilarity(Transaction transaction, String fromId, String toId, double weight) {
+    private SummaryCounters addOrUpdateSimilarity(Transaction transaction, String fromId, String toId, double weight) {
         String query = """
                         MATCH(a: User)
                         MATCH(b: User)
@@ -468,23 +462,7 @@ public class Neo4jUserDao extends Neo4jDao{
         params.put("to_mongo_id", toId);
         params.put("weight", weight);
 
-        try {
-            transaction.run(query, params);
-        } catch (Neo4jException e) {
-            LOGGER.error(query + " raised an exception", e);
-            throw e;
-        }
-        return null;
-    }
-
-    private void runTransaction(Transaction transaction, String query, Map<String, Object> params) {
-
-        try {
-            transaction.run(query, params);
-        } catch (Neo4jException e) {
-            LOGGER.error(query + " raised an exception", e);
-            throw e;
-        }
+        return runTransaction(transaction, query, params);
     }
 
     private List<Neo4jUser> getNeo4jUsers(Transaction transaction, String query, Map<String, Object> params) {
@@ -493,7 +471,7 @@ public class Neo4jUserDao extends Neo4jDao{
             Result result = transaction.run(query, params);
             return result.list(record -> objectMapper.convertValue(record.get(0).asMap(), Neo4jUser.class));
         } catch (Neo4jException e) {
-            LOGGER.error(query + " raised an exception", e.getMessage());
+            logger.error(query + " raised an exception", e.getMessage());
             throw e;
         }
     }
@@ -516,18 +494,7 @@ public class Neo4jUserDao extends Neo4jDao{
             }
             return users;
         } catch (Neo4jException e) {
-            LOGGER.error(query + " raised an exception", e.getMessage());
-            throw e;
-        }
-    }
-
-    private int getCount(Transaction transaction, String query, Map<String, Object> params) {
-
-        try {
-            Result result = transaction.run(query, params);
-            return result.single().get(0).asInt();
-        } catch (Neo4jException e) {
-            LOGGER.error(query + " raised an exception", e.getMessage());
+            logger.error(query + " raised an exception", e.getMessage());
             throw e;
         }
     }

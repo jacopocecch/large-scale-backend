@@ -9,6 +9,7 @@ import com.unipi.large.scale.backend.entities.neo4j.Neo4jUser;
 import com.unipi.large.scale.backend.service.exceptions.DbException;
 import org.bson.types.ObjectId;
 import org.neo4j.driver.Record;
+import org.neo4j.driver.summary.SummaryCounters;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,23 +37,41 @@ public class SongService extends EntityService{
 
         ObjectId objectId = new ObjectId(id);
 
-        if (customSongRepository.deleteSongById(objectId)) throw new DbException("Unable to delete mongodb user of id " + id);
+        if (!customSongRepository.deleteSongById(objectId)) {
+            logger.error("Unable to delete mongodb song of id " + id);
+            throw new DbException("Unable to delete mongodb song of id " + id);
+        }
 
-        neo4jSongDao.deleteByMongoId(id);
+        if (!customCommentRepository.deleteSongComments(objectId)) {
+            logger.error("Unable to delete comments for song " + id);
+        }
 
-        if (neo4jSongDao.getByMongoId(id).isPresent()) throw new DbException("Unable to delete neo4j song of id " + id);
-
-        customCommentRepository.deleteSongComments(objectId);
+        if (neo4jSongDao.deleteByMongoId(id).nodesDeleted() == 0){
+            logger.error("Unable to delete neo4j song of id " + id);
+            throw new DbException("Unable to delete neo4j song of id " + id);
+        }
     }
 
+    @Transactional
     public MongoSong createSong(MongoSong mongoSong) {
 
         MongoSong song = customSongRepository.createSong(mongoSong);
         ObjectId id = song.getId();
 
+        if (id == null) {
+            logger.error("Unable to create mongodb song");
+            throw new DbException("Unable to create mongodb song");
+        }
+
         Neo4jSong neo4jSong = new Neo4jSong(id.toString(), song.getName(), song.getArtists().stream().toList(), song.getAlbum());
 
-        neo4jSongDao.createSong(neo4jSong);
+        if (neo4jSongDao.createSong(neo4jSong).nodesCreated() == 0) {
+
+            if (!customSongRepository.deleteSongById(id)){
+                logger.error("Unable to delete mongodb user of id " + id + " after not being able to create him on neo4j");
+                throw new DbException("Unable to delete mongodb user of id " + id + " after not being able to create him on neo4j");
+            }
+        }
 
         return song;
     }
@@ -90,7 +109,11 @@ public class SongService extends EntityService{
         Optional<Record> currentLike = neo4jSongDao.getLikeValue(userId, songId);
 
         if (currentLike.isEmpty() || currentLike.get().get(0).asInt() != like){
-            neo4jSongDao.updateLikeRelationship(userId, songId, like);
+            SummaryCounters counters = neo4jSongDao.updateLikeRelationship(userId, songId, like);
+            if (counters.relationshipsCreated() == 0 || counters.propertiesSet() == 0) {
+                logger.error("Unable to update like relationship for neo4j user " + userId + " and song " + songId);
+                throw new DbException("Unable to update like relationship for neo4j user " + userId + " and song " + songId);
+            }
         } else {
             throw new DbException("Song already liked by the user");
         }
@@ -135,8 +158,9 @@ public class SongService extends EntityService{
 
         song.setCluster(predominantCluster);
 
-        if (customSongRepository.updateLikes(song)){
-            // gestione
+        if (!customSongRepository.updateLikes(song)){
+            logger.error("Unable to update like relationship mongodb like count for song " + songId);
+            throw new DbException("Unable to update like relationship mongodb like count for song " + songId);
         }
     }
 
@@ -160,6 +184,7 @@ public class SongService extends EntityService{
         ObjectId id = insertedComment.getId();
 
         if (id == null) {
+            logger.error("Unable to create new comment");
             throw new DbException("Unable to create new comment");
         }
 
@@ -177,7 +202,8 @@ public class SongService extends EntityService{
 
         song.setComments(commentSubsets);
 
-        if (customSongRepository.updateComments(song) == 0) {
+        if (!customSongRepository.updateComments(song)) {
+            logger.error("Unable to update song's comments");
             throw new DbException("Unable to update song's comments");
         }
 

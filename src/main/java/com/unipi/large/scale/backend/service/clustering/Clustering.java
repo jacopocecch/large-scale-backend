@@ -9,6 +9,7 @@ import weka.core.*;
 import weka.filters.unsupervised.attribute.Remove;
 
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -103,17 +104,21 @@ public class Clustering {
     // function called after registration to perform clustering on the new instance
     public void performClustering(MongoUser user){
         System.out.println("Performing clustering on the new instance..");
-        try {
-            double[] values;
-            values = getValues(user);
-            Instance instance = new DenseInstance(1,values);
-            instance.setDataset(dataset);
-            int cluster = filteredClusterer.clusterInstance(instance) + 1;
-            user.setCluster(cluster);
-            System.out.println("Cluster assigned: " + cluster);
-            dataset.add(instance);
-        } catch(Exception e){
-            e.printStackTrace();
+        if (dataset == null) {
+            user.setCluster(ThreadLocalRandom.current().nextInt(1, 6));
+        } else {
+            try {
+                double[] values;
+                values = getValues(user);
+                Instance instance = new DenseInstance(1, values);
+                instance.setDataset(dataset);
+                int cluster = filteredClusterer.clusterInstance(instance) + 1;
+                user.setCluster(cluster);
+                System.out.println("Cluster assigned: " + cluster);
+                dataset.add(instance);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 

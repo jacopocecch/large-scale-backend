@@ -72,12 +72,10 @@ public record Mapper(ModelMapper modelMapper) {
 
     public InterfaceSongDto neo4jSongToInterfaceSongDto(Neo4jSong neo4jSong) {
 
-        modelMapper.typeMap(Neo4jSong.class, InterfaceSongDto.class).addMapping(
+        return modelMapper.typeMap(Neo4jSong.class, InterfaceSongDto.class).addMapping(
                 Neo4jSong::getMongoId,
                 InterfaceSongDto::setId
-        );
-
-        return modelMapper.map(neo4jSong, InterfaceSongDto.class);
+        ).map(neo4jSong);
     }
 
     public List<InterfaceSongDto> neo4jSongsToInterfaceSongsDto(List<Neo4jSong> neo4jSongs) {

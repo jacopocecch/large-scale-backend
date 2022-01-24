@@ -12,6 +12,7 @@ import com.unipi.large.scale.backend.data.Login;
 import com.unipi.large.scale.backend.data.Survey;
 import com.unipi.large.scale.backend.entities.neo4j.FriendRequest;
 import org.bson.types.ObjectId;
+import org.neo4j.driver.summary.SummaryCounters;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,13 +38,19 @@ public class UserService extends EntityService {
 
         ObjectId objectId = new ObjectId(id);
 
-        if (!customUserRepository.deleteUser(objectId)) throw new RuntimeException("Unable to delete mongodb user of id " + id);
+        if (!customUserRepository.deleteUser(objectId)) {
+            logger.error("Unable to delete mongodb user of id " + id);
+            throw new DbException("Unable to delete mongodb user of id " + id);
+        }
 
-        customCommentRepository.deleteUserComments(objectId);
+        if (!customCommentRepository.deleteUserComments(objectId)){
+            logger.error("Unable to delete comments for user " + id);
+        }
 
-        neo4jUserDao.deleteByMongoId(id);
-
-        if (neo4jUserDao.getByMongoId(id).isPresent()) throw new RuntimeException("Unable to delete neo4j user of id " + id);
+        if (neo4jUserDao.deleteByMongoId(id).nodesDeleted() == 0) {
+            logger.error("Unable to delete neo4j user of id " + id);
+            throw new DbException("Unable to delete neo4j user of id " + id);
+        }
     }
 
     @Transactional
@@ -59,16 +66,36 @@ public class UserService extends EntityService {
         MongoUser insertedUser = customUserRepository.insertUser(mongoUser);
         ObjectId objectId = insertedUser.getId();
 
+        if (objectId == null) {
+            logger.error("Unable to create mongodb user");
+            throw new DbException("Unable to create mongodb user");
+        }
+
         Neo4jUser neo4jUser = new Neo4jUser(objectId.toString(), insertedUser.getFirstName(), insertedUser.getLastName(), insertedUser.getCountry(), insertedUser.getImage());
 
-        neo4jUserDao.createUser(neo4jUser);
+        if (neo4jUserDao.createUser(neo4jUser).nodesCreated() == 0){
+
+            if (!customUserRepository.deleteUser(objectId)){
+                logger.error("Unable to delete mongodb user of id " + objectId + " after not being able to create him on neo4j");
+                throw new DbException("Unable to delete mongodb user of id " + objectId + " after not being able to create him on neo4j");
+            }
+        }
 
         if (utils.areSurveyValuesCorrect(insertedUser)) {
 
             clustering.performClustering(insertedUser);
-            customUserRepository.updateCluster(insertedUser);
+
+            if (!customUserRepository.updateCluster(insertedUser)){
+                logger.error("Unable to update cluster for mongodb user of id " + objectId);
+                throw new DbException("Unable to update cluster for mongodb user of id " + objectId);
+            }
+
             neo4jUser.setCluster(insertedUser.getCluster());
-            neo4jUserDao.updateCluster(neo4jUser);
+
+            if (neo4jUserDao.updateCluster(neo4jUser).propertiesSet() == 0) {
+                logger.error("Unable to update cluster for neo4j user of id " + objectId);
+            }
+
             setNearestNeighbors(insertedUser);
         }
 
@@ -89,12 +116,16 @@ public class UserService extends EntityService {
 
         if (!toBeUpdated.isEmpty()) {
             if (!customUserRepository.updateUserInfo(id, toBeUpdated)){
-                // gestisco
+                logger.error("Unable to update info for mongodb user of id " + id);
+                throw new DbException("Unable to update info for mongodb user of id " + id);
             }
         }
 
         if (toBeUpdated.containsKey("first_name") || toBeUpdated.containsKey("last_name") || toBeUpdated.containsKey("country") || toBeUpdated.containsKey("picture")){
-            neo4jUserDao.updateUser(neo4jUser);
+            if (neo4jUserDao.updateUser(neo4jUser).propertiesSet() == 0) {
+                logger.error("Unable to update info for neo4j user of id " + id);
+                throw new DbException("Unable to update info for neo4j user of id" + id);
+            }
         }
     }
 
@@ -102,9 +133,7 @@ public class UserService extends EntityService {
 
         MongoUser mongoUser = customUserRepository.findByEmail(login.getEmail());
 
-        if (mongoUser == null) {
-            throw new LoginException("No user found with email: " + login.getEmail());
-        }
+        if (mongoUser == null) throw new LoginException("No user found with email: " + login.getEmail());
 
         if (!passwordEncoder.matches(login.getPassword(), mongoUser.getPassword())) throw new LoginException("Invalid password");
 
@@ -123,15 +152,6 @@ public class UserService extends EntityService {
         return neo4jUserDao.getSimilarUsersWithFriendshipStatus(id);
     }
 
-    public void updateSimilarUsers(String id) {
-
-        getNeo4jUserByMongoId(id);
-
-        MongoUser user = getMongoUserById(new ObjectId(id));
-
-        setNearestNeighbors(user);
-    }
-
     public List<Neo4jUser> getNearbySimilarUsers(String id) {
 
         getNeo4jUserByMongoId(id);
@@ -140,21 +160,15 @@ public class UserService extends EntityService {
     }
 
     @Transactional
-    public void updateSimilarUsers(String fromUserId, String toUserId, double weight) {
-
-        getNeo4jUserByMongoId(fromUserId);
-        getNeo4jUserByMongoId(toUserId);
-
-        neo4jUserDao.addSimilarityRelationship(fromUserId, toUserId, weight);
-    }
-
-    @Transactional
     public void addFriendRequest(String fromUserId, String toUserId) {
 
         getNeo4jUserByMongoId(fromUserId);
         getNeo4jUserByMongoId(toUserId);
 
-        neo4jUserDao.addFriendRequest(fromUserId, toUserId);
+        if (neo4jUserDao.addFriendRequest(fromUserId, toUserId).relationshipsCreated() == 0){
+            logger.error("Unable to create a friend request between " + fromUserId + " and " + toUserId);
+            throw new DbException("Unable to create a friend request between " + fromUserId + " and " + toUserId);
+        }
     }
 
     @Transactional
@@ -163,7 +177,10 @@ public class UserService extends EntityService {
         getNeo4jUserByMongoId(fromUserId);
         getNeo4jUserByMongoId(toUserId);
 
-        neo4jUserDao.deleteFriendRequest(fromUserId, toUserId);
+        if (neo4jUserDao.deleteFriendRequest(fromUserId, toUserId).relationshipsDeleted() == 0){
+            logger.error("Unable to delete a friend request between " + fromUserId + " and " + toUserId + ". It's possibile that the users did not share a friend request.");
+            throw new DbException("Unable to delete a friend request between " + fromUserId + " and " + toUserId + ". It's possibile that the users did not share a friend request.");
+        }
     }
 
     @Transactional
@@ -174,7 +191,12 @@ public class UserService extends EntityService {
 
         FriendRequest.Status newStatus = status == 0 ? FriendRequest.Status.REFUSED : FriendRequest.Status.ACCEPTED;
 
-        neo4jUserDao.updateFriendRequest(fromUserId, toUserId, newStatus);
+        SummaryCounters counters = neo4jUserDao.updateFriendRequest(fromUserId, toUserId, newStatus);
+
+        if (counters.relationshipsCreated() == 0 || counters.propertiesSet() == 0) {
+            logger.error("Unable to update or create friend request between " + fromUserId + " and " + toUserId);
+            throw new DbException("Unable to update or create friend request between " + fromUserId + " and " + toUserId);
+        }
     }
 
     public List<Neo4jUser> getIncomingFriendRequests(String id) {
@@ -277,7 +299,7 @@ public class UserService extends EntityService {
         getNeo4jUserByMongoId(mongoUser.getId().toString());
 
         if (!utils.areSurveyValuesCorrect(mongoUser)) {
-            throw new RuntimeException("User does not have a survey");
+            throw new RuntimeException("User does not have a valid survey");
         }
         if (mongoUser.getCluster() == 0){
             throw new RuntimeException("User does not belong to any cluster");

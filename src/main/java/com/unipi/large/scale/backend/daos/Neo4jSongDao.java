@@ -6,6 +6,7 @@ import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.exceptions.Neo4jException;
+import org.neo4j.driver.summary.SummaryCounters;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
@@ -24,23 +25,6 @@ public class Neo4jSongDao extends Neo4jDao{
                     RETURN s""";
 
                 Map<String, Object> params = Collections.singletonMap("mongo_id", id);
-                return getNeo4jSongs(transaction, query, params);
-            });
-            return songs.stream().findFirst();
-        }
-    }
-
-    public Optional<Neo4jSong> getBySongName(String name) {
-
-        try (Session session = driver.session()){
-
-            List<Neo4jSong> songs = session.readTransaction(transaction -> {
-                String query = """
-                    MATCH (s:Song)
-                    WHERE s.name = $name
-                    RETURN s""";
-
-                Map<String, Object> params = Collections.singletonMap("name", name);
                 return getNeo4jSongs(transaction, query, params);
             });
             return songs.stream().findFirst();
@@ -74,20 +58,22 @@ public class Neo4jSongDao extends Neo4jDao{
                         ORDER BY Strength DESC
                         LIMIT 15
                         """;
+
                 Map<String, Object> params = new HashMap<>();
                 params.put("mongo_id", id);
                 params.put("alpha", recommendedSongsConfigurationProperties.getAlpha());
                 params.put("beta", recommendedSongsConfigurationProperties.getBeta());
+
                 return getNeo4jSongs(transaction, query, params);
             });
         }
     }
 
-    public void updateLikeRelationship(String fromId, String toId, int like){
+    public SummaryCounters updateLikeRelationship(String fromId, String toId, int like){
 
         try (Session session = driver.session()){
 
-            session.writeTransaction(transaction -> {
+            return session.writeTransaction(transaction -> {
                 String query = """
                         MATCH(u: User)
                         MATCH(s: Song)
@@ -100,14 +86,8 @@ public class Neo4jSongDao extends Neo4jDao{
                 params.put("from_mongo_id", fromId);
                 params.put("to_mongo_id", toId);
                 params.put("like", like);
-                try {
-                    Result result = transaction.run(query, params);
-                    System.out.println(result.consume().counters());
-                } catch (Neo4jException e) {
-                    LOGGER.error(query + " raised an exception", e);
-                    throw e;
-                }
-                return null;
+
+                return runTransaction(transaction, query, params);
             });
         }
     }
@@ -129,25 +109,24 @@ public class Neo4jSongDao extends Neo4jDao{
                     Result result = transaction.run(query, params);
                     return result.stream().findFirst();
                 } catch (Neo4jException e) {
-                    LOGGER.error(query + " raised an exception", e.getMessage());
+                    logger.error(query + " raised an exception", e.getMessage());
                     throw e;
                 }
             });
         }
     }
 
-    public void createSong(Neo4jSong song) {
+    public SummaryCounters createSong(Neo4jSong song) {
 
         try (Session session = driver.session()){
 
-            session.writeTransaction(transaction -> {
+            return session.writeTransaction(transaction -> {
                 String query = """
                         CREATE (s: Song {mongoId: $mongo_id, name: $name, artists: $artists, album: $album})""";
 
                 Map<String, Object> params = setCreateUpdateParameters(song);
 
-                runTransaction(transaction, query, params);
-                return null;
+                return runTransaction(transaction, query, params);
             });
         }
     }
@@ -158,7 +137,7 @@ public class Neo4jSongDao extends Neo4jDao{
             Result result = transaction.run(query, params);
             return result.list(record -> objectMapper.convertValue(record.get(0).asMap(), Neo4jSong.class));
         } catch (Neo4jException e) {
-            LOGGER.error(query + " raised an exception", e.getMessage());
+            logger.error(query + " raised an exception", e.getMessage());
             throw e;
         }
     }
@@ -173,11 +152,11 @@ public class Neo4jSongDao extends Neo4jDao{
         return params;
     }
 
-    public void deleteByMongoId(String id) {
+    public SummaryCounters deleteByMongoId(String id) {
 
         try (Session session = driver.session()){
 
-            session.writeTransaction(transaction -> {
+            return session.writeTransaction(transaction -> {
                 String query = """
                         MATCH (s:Song)
                         WHERE s.mongoId = $mongo_id
@@ -185,44 +164,7 @@ public class Neo4jSongDao extends Neo4jDao{
 
                 Map<String, Object> params = Collections.singletonMap("mongo_id", id);
 
-                runTransaction(transaction, query, params);
-                return null;
-            });
-        }
-    }
-
-    private void runTransaction(Transaction transaction, String query, Map<String, Object> params) {
-
-        try {
-            transaction.run(query, params);
-        } catch (Neo4jException e) {
-            LOGGER.error(query + " raised an exception", e);
-            throw e;
-        }
-    }
-
-    public Object getSongClusterLikes(String id, int cluster, int like) {
-
-        try (Session session = driver.session()) {
-
-            return session.readTransaction(transaction -> {
-                String query = """
-                        MATCH(s:Song {mongoId: $mongo_id})<-[r:LIKES{value: $like}]-(u:User)
-                        RETURN u.cluster, COUNT(r)""";
-
-                Map<String, Object> params = new HashMap<>();
-                params.put("mongo_id", id);
-                params.put("like", like);
-                params.put("cluster", cluster);
-
-                try {
-                    Result result = transaction.run(query, params);
-                    System.out.println(result.list(record -> record.get(0).asMap()));
-                } catch (Neo4jException e) {
-                    LOGGER.error(query + " raised an exception", e);
-                    throw e;
-                }
-                return null;
+                return runTransaction(transaction, query, params);
             });
         }
     }

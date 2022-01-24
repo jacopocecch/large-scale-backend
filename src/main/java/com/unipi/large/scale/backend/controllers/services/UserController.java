@@ -84,15 +84,6 @@ public class UserController extends ServiceController {
         );
     }
 
-    @PostMapping("similarities/{id}")
-    ResponseEntity<Object> updateSimilarUsers(@PathVariable String id) {
-
-        userService.updateSimilarUsers(id);
-        return new ResponseEntity<>(
-                HttpStatus.OK
-        );
-    }
-
     @GetMapping("similarities/{id}")
     ResponseEntity<List<InterfaceUserDto>> getSimilarUsers(@PathVariable String id) {
 
@@ -109,17 +100,6 @@ public class UserController extends ServiceController {
                 mapper.neo4jUsersToInterfaceUsersDto(userService.getNearbySimilarUsers(id)),
                 HttpStatus.OK
         );
-    }
-
-    @Transactional
-    @PutMapping("similarities")
-    ResponseEntity<Object> updateSimilarUsers(@RequestParam(value = "from") String fromUserId,
-                                              @RequestParam(value = "to") String toUserId,
-                                              @RequestParam(value = "weight") @Min(0) @Max(1) double weight) {
-
-        userService.updateSimilarUsers(fromUserId, toUserId, weight);
-
-        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @Transactional

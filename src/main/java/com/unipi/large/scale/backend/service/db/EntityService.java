@@ -15,7 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 abstract class EntityService {
 
-    Logger logger = LoggerFactory.getLogger(EntityService.class);
+    protected final Logger logger = LoggerFactory.getLogger(EntityService.class);
 
     @Autowired
     protected Neo4jUserDao neo4jUserDao;
