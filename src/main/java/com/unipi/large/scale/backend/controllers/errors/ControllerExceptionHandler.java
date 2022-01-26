@@ -31,7 +31,7 @@ public class ControllerExceptionHandler {
 
         String exceptionMessage = e.getMessage();
 
-        e.printStackTrace();
+        System.out.println(exceptionMessage);
 
         return new ResponseEntity<>(new ErrorResponse(httpStatus, exceptionMessage), httpStatus);
     }
