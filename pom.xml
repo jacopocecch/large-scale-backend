@@ -9,10 +9,10 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.unipi</groupId>
-	<artifactId>data.mining.backend</artifactId>
+	<artifactId>large.scale.backend</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>data.mining.backend</name>
-	<description>Backend for Data Mining and Machine Learning project</description>
+	<name>large.scale.backend</name>
+	<description>Backend for Large-Scale and Multi-Structured Databases project</description>
 	<properties>
 		<java.version>16</java.version>
 		<neo4j-java-driver-spring-boot-starter.version>4.3.6.0</neo4j-java-driver-spring-boot-starter.version>
